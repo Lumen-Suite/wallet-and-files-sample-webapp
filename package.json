@@ -1,0 +1,23 @@
+{
+  "name": "wallet-and-files-sample-webapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Public sample demonstrating the Lumen BridgePass OAuth flow plus end-user file browsing and upload. Vite + React + Tailwind frontend, Express thin-proxy backend, browser-side MD5 + direct-to-Azure SAS URL upload.",
+  "license": "MIT",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "start": "concurrently -n SRV,WEB -c blue,magenta \"npm:dev --workspace=server\" \"npm:dev --workspace=web\"",
+    "dev": "npm run start",
+    "build": "npm run build --workspace=web",
+    "postinstall": "node -e \"console.log('\\n[OK] Setup complete. Next:\\n  1. Copy .env.example to .env\\n  2. Paste your Lumen API key and secret into .env\\n  3. Register http://localhost:5173/callback as a redirect URL on your API key in the Lumen dashboard\\n  4. Run: npm start\\n')\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
