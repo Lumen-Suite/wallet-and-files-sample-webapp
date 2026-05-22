@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@theme {
+  --font-sans: 'Sora', 'Inter', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --tracking-tight: -0.04em;
+  --radius-none: 0;
+  --color-lumen-bg: #ffffff;
+  --color-lumen-fg: #0a0a0a;
+  --color-lumen-muted: #6b7280;
+  --color-lumen-border: #e5e7eb;
+  --color-lumen-border-strong: #d1d5db;
+  --color-lumen-subtle: #f9fafb;
+  --color-lumen-row-hover: #f3f4f6;
+  --color-lumen-error: #ef4444;
+  --color-lumen-success: #22c55e;
+}
+
+/* Lumen design enforcement: flat, no shadow. Spinner's loader ring uses inline */
+/* border-radius and is allowed by intent. */
+*,
+*::before,
+*::after {
+  box-shadow: none;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-lumen-bg);
+  color: var(--color-lumen-fg);
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a {
+  letter-spacing: -0.02em;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+input,
+select {
+  background: transparent;
+}
