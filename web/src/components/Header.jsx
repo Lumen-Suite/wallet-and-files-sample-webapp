@@ -54,14 +54,6 @@ export default function Header() {
               </button>
             </>
           )}
-          <a
-            href="https://github.com/Bayanichain/wallet-and-files-sample-webapp"
-            target="_blank"
-            rel="noreferrer"
-            className="text-lumen-muted hover:text-lumen-fg"
-          >
-            GitHub
-          </a>
         </nav>
       </div>
     </header>

@@ -36,10 +36,11 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
   }
 
   const trimmedName = name.trim()
-  const canUpload = !busy && trimmedName.length > 0
+  const trimmedDescription = description.trim()
+  const canUpload = !busy && trimmedName.length > 0 && trimmedDescription.length > 0
 
   const upload = async () => {
-    if (!file || !trimmedName) return
+    if (!file || !trimmedName || !trimmedDescription) return
     setBusy(true)
     setError(null)
     setSuccess(null)
@@ -54,7 +55,7 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
           Name: trimmedName,
           FileExtension: extOf(file.name) || 'bin',
           Checksum,
-          Description: description,
+          Description: trimmedDescription,
         },
       )
 
@@ -193,14 +194,18 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
               </label>
 
               <label className="block">
-                <span className="text-xs uppercase tracking-wider text-lumen-muted">Description (optional)</span>
+                <span className="text-xs uppercase tracking-wider text-lumen-muted">Description</span>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={2}
                   disabled={busy}
+                  placeholder="Briefly describe this file"
                   className="mt-1 w-full border border-lumen-border focus:border-lumen-fg outline-none px-3 py-2 text-sm"
                 />
+                {!trimmedDescription && (
+                  <span className="block text-xs text-lumen-error mt-1">Description is required.</span>
+                )}
               </label>
             </>
           )}

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { callLumenFiles } from '../lumenClient.js'
+import { callLumenFiles, encodePath } from '../lumenClient.js'
 import { validateQuery, directoryListQuery } from '../middleware/validateQuery.js'
 
 const r = Router()
@@ -9,7 +9,7 @@ r.get('/directoryItems', validateQuery(directoryListQuery), async (req, res, nex
     const { path, ...rest } = req.query
     const { data } = await callLumenFiles({
       method: 'GET',
-      url: `/directoryItems/${encodeURIComponent(path)}`,
+      url: `/directoryItems/${encodePath(path)}`,
       params: rest,
     })
     res.json(data)

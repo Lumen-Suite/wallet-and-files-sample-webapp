@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { callLumen } from '../lumenClient.js'
+import { callLumen, encodePath } from '../lumenClient.js'
 import {
   validateQuery,
   listQuery,
@@ -31,7 +31,7 @@ r.post('/user/files',
       const { path } = req.query
       const { data } = await callLumen({
         method: 'POST',
-        url: `/user/files/${encodeURIComponent(path)}`,
+        url: `/user/files/${encodePath(path)}`,
         data: { ...req.body, Path: path },
         _userToken: req.userToken,
       })
