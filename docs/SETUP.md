@@ -146,7 +146,7 @@ Run the command for your computer:
 Open `.env` in any text editor — Notepad on Windows, TextEdit on macOS, or VS Code if you have it. You'll see something like:
 
 ```
-LUMEN_API_BASE_URL=https://lumen-dev-wallets-func-dev....azurecontainerapps.io/api
+LUMEN_API_BASE_URL=https://lumen-apim-stg.azure-api.net/wallet
 LUMEN_API_KEY=paste-your-api-key-here
 LUMEN_API_SECRET=paste-your-api-secret-here
 SERVER_PORT=8787
