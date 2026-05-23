@@ -15,9 +15,13 @@ export default function Header() {
     <header className="border-b border-lumen-border">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <span className="inline-flex items-center justify-center w-8 h-8 bg-lumen-fg text-lumen-bg font-bold">
-            L
-          </span>
+          <img
+            src="/lumen.png"
+            alt="Lumen"
+            width="32"
+            height="32"
+            className="w-8 h-8 object-contain"
+          />
           <span className="font-semibold tracking-tight text-lumen-fg">
             Lumen Wallet &amp; Files
           </span>
