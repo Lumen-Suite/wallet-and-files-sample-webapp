@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 
@@ -7,6 +8,41 @@ function Row({ label, value, mono }) {
       <div className="text-xs uppercase tracking-wider text-lumen-muted">{label}</div>
       <div className={`col-span-2 text-sm break-all ${mono ? 'font-mono' : ''}`}>{value ?? '-'}</div>
     </div>
+  )
+}
+
+function shortenAddress(addr) {
+  if (!addr) return ''
+  if (addr.length <= 14) return addr
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+}
+
+function AddressChip({ address }) {
+  const [copied, setCopied] = useState(false)
+  if (!address) return null
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1200)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title={`Click to copy: ${address}`}
+      className="inline-flex items-center gap-1.5 text-xs font-mono text-lumen-muted hover:text-lumen-fg border border-lumen-border px-2 py-0.5 mt-1"
+    >
+      <span>{shortenAddress(address)}</span>
+      <span className={copied ? 'text-lumen-success' : 'text-lumen-muted'}>
+        {copied ? 'copied' : 'copy'}
+      </span>
+    </button>
   )
 }
 
@@ -39,9 +75,10 @@ export default function Dashboard() {
           <div className="min-w-0 flex-1">
             <div className="font-semibold text-lumen-fg truncate">{provider?.AccountName ?? '-'}</div>
             <div className="text-xs text-lumen-muted truncate">{provider?.Email ?? '-'}</div>
+            <AddressChip address={wallet?.WalletAddress} />
           </div>
           {provider?.Type && (
-            <span className="text-xs uppercase tracking-widest text-lumen-muted px-2 py-1 border border-lumen-border">
+            <span className="text-xs uppercase tracking-widest text-lumen-muted px-2 py-1 border border-lumen-border self-start">
               {provider.Type}
             </span>
           )}
