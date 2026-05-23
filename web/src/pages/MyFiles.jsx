@@ -5,14 +5,7 @@ import Spinner from '../components/Spinner.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Pagination from '../components/Pagination.jsx'
-import SearchSortBar from '../components/SearchSortBar.jsx'
-
-const SORT_OPTIONS = [
-  { value: 'Name', label: 'Name' },
-  { value: '_ts', label: 'Recently changed' },
-  { value: 'FileExtension', label: 'Extension' },
-  { value: 'CreatedAt', label: 'Created' },
-]
+import FileDetailModal from '../components/FileDetailModal.jsx'
 
 function shorten(addr) {
   if (!addr) return '-'
@@ -20,37 +13,41 @@ function shorten(addr) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
+function ext(f) {
+  return f?.File?.Extension || f?.FileExtension || null
+}
+
+function sizeOf(f) {
+  const s = f?.File?.OriginalFile?.Size
+  if (typeof s !== 'number') return null
+  if (s < 1024) return `${s} B`
+  if (s < 1024 * 1024) return `${(s / 1024).toFixed(1)} KB`
+  return `${(s / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export default function MyFiles() {
   const [params, setParams] = useSearchParams()
 
   const pageNumber = Number(params.get('pageNumber') || 1)
   const pageSize = Number(params.get('pageSize') || 10)
-  const search = params.get('search') || ''
-  const sortField = params.get('sort[0][field]') || ''
-  const sortOrder = params.get('sort[0][order]') || 'desc'
 
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeFile, setActiveFile] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const query = { pageNumber, pageSize }
-      if (search) query.search = search
-      if (sortField) {
-        query['sort[0][field]'] = sortField
-        query['sort[0][order]'] = sortOrder
-      }
-      const res = await api.get('/user/files', { params: query })
+      const res = await api.get('/user/files', { params: { pageNumber, pageSize } })
       setData(res.data)
     } catch (e) {
       setError(extractError(e))
     } finally {
       setLoading(false)
     }
-  }, [pageNumber, pageSize, search, sortField, sortOrder])
+  }, [pageNumber, pageSize])
 
   useEffect(() => { load() }, [load])
 
@@ -76,9 +73,6 @@ export default function MyFiles() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link to="/" className="border border-lumen-border px-4 py-2 text-sm hover:bg-lumen-row-hover">
-            Dashboard
-          </Link>
           <Link
             to="/upload"
             className="bg-lumen-fg text-lumen-bg px-4 py-2 text-sm hover:opacity-90"
@@ -88,34 +82,14 @@ export default function MyFiles() {
         </div>
       </header>
 
-      <SearchSortBar
-        search={search}
-        onSearchChange={(v) => updateParams({ search: v, pageNumber: 1 })}
-        sortField={sortField}
-        sortOrder={sortOrder}
-        onSortChange={({ field, order }) =>
-          updateParams({
-            'sort[0][field]': field,
-            'sort[0][order]': field ? order : undefined,
-            pageNumber: 1,
-          })
-        }
-        sortOptions={SORT_OPTIONS}
-        placeholder="Search your files..."
-      />
-
       <ErrorBanner message={error} onRetry={load} />
 
       {loading ? (
         <Spinner label="Loading your files..." />
       ) : files.length === 0 ? (
         <EmptyState
-          title={search ? 'No files match your search' : 'No files yet'}
-          message={
-            search
-              ? 'Try a different search term or clear the search box.'
-              : 'Click "Upload a file" above to add your first file.'
-          }
+          title="No files yet"
+          message='Click "Upload a file" above to add your first file.'
         />
       ) : (
         <div className="border border-lumen-border overflow-x-auto">
@@ -123,24 +97,35 @@ export default function MyFiles() {
             <thead className="bg-lumen-subtle border-b border-lumen-border">
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden sm:table-cell">Type</th>
-                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden md:table-cell">Owner</th>
-                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden lg:table-cell">Checksum</th>
+                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden sm:table-cell">Folder</th>
+                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden md:table-cell">Type</th>
+                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden md:table-cell">Size</th>
+                <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden lg:table-cell">Owner</th>
               </tr>
             </thead>
             <tbody>
               {files.map((f) => {
                 const id = f.id ?? f.Id ?? `${f.Path}/${f.Name}`
+                const e = ext(f)
+                const s = sizeOf(f)
                 return (
-                  <tr key={id} className="border-b border-lumen-border last:border-b-0 hover:bg-lumen-row-hover">
-                    <td className="px-4 py-3 font-medium">{f.Name ?? '-'}</td>
-                    <td className="px-4 py-3 hidden sm:table-cell text-lumen-muted">
-                      {f.FileExtension ? '.' + String(f.FileExtension).toUpperCase() : '-'}
+                  <tr
+                    key={id}
+                    onClick={() => setActiveFile(f)}
+                    className="border-b border-lumen-border last:border-b-0 hover:bg-lumen-row-hover cursor-pointer"
+                  >
+                    <td className="px-4 py-3 font-medium">
+                      <div className="truncate">{f.Name ?? '-'}</div>
+                      {f.NFT && (
+                        <div className="text-xs text-lumen-muted uppercase tracking-wider mt-0.5">NFT minted</div>
+                      )}
                     </td>
-                    <td className="px-4 py-3 hidden md:table-cell font-mono text-lumen-muted">{shorten(f.OwnerAddress)}</td>
-                    <td className="px-4 py-3 hidden lg:table-cell font-mono text-xs text-lumen-muted">
-                      {f.Checksum ? f.Checksum.slice(0, 12) + '...' : '-'}
+                    <td className="px-4 py-3 hidden sm:table-cell text-lumen-muted font-mono">{f.Path ?? '-'}</td>
+                    <td className="px-4 py-3 hidden md:table-cell text-lumen-muted">
+                      {e ? '.' + String(e).toUpperCase() : '-'}
                     </td>
+                    <td className="px-4 py-3 hidden md:table-cell text-lumen-muted">{s ?? '-'}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell font-mono text-lumen-muted">{shorten(f.OwnerAddress)}</td>
                   </tr>
                 )
               })}
@@ -155,6 +140,8 @@ export default function MyFiles() {
         onPageChange={(p) => updateParams({ pageNumber: p })}
         onPageSizeChange={(s) => updateParams({ pageSize: s, pageNumber: 1 })}
       />
+
+      <FileDetailModal file={activeFile} onClose={() => setActiveFile(null)} />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { api, extractError } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import Spinner from '../components/Spinner.jsx'
@@ -61,18 +61,11 @@ export default function Transactions() {
 
   return (
     <div>
-      <header className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My transactions</h1>
-          <p className="text-sm text-lumen-muted mt-1">
-            On-chain activity for your wallet: <span className="font-mono">{shorten(address)}</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/" className="border border-lumen-border px-4 py-2 text-sm hover:bg-lumen-row-hover">
-            Dashboard
-          </Link>
-        </div>
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">My transactions</h1>
+        <p className="text-sm text-lumen-muted mt-1">
+          On-chain activity for your wallet: <span className="font-mono">{shorten(address)}</span>
+        </p>
       </header>
 
       {!address ? (
