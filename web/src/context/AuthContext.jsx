@@ -3,6 +3,19 @@ import { api, setUserToken, extractError } from '../api/client.js'
 
 const KEY = 'wfs_auth_v1'
 
+function decodeJwtExpMs(jwt) {
+  try {
+    const part = String(jwt).split('.')[1]
+    if (!part) return null
+    let b64 = part.replace(/-/g, '+').replace(/_/g, '/')
+    while (b64.length % 4) b64 += '='
+    const payload = JSON.parse(atob(b64))
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
 function readSession() {
   try {
     const raw = sessionStorage.getItem(KEY)
@@ -22,21 +35,27 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const s = state
-    if (!s?.token?.token) {
+    if (!s?.token) {
       setHydrating(false)
       return
     }
-    if (s.token.expiresAt && Date.parse(s.token.expiresAt) <= Date.now()) {
+    if (s.expiresAt && s.expiresAt <= Date.now()) {
       clearSession()
       setUserToken(null)
       setState(null)
       setHydrating(false)
       return
     }
-    setUserToken(s.token.token)
+    setUserToken(s.token)
     api.get('/auth/authenticate')
       .then((res) => {
-        const next = { token: res.data?.Token ?? s.token, wallet: res.data?.Wallet ?? s.wallet }
+        const nextToken = typeof res.data?.Token === 'string' ? res.data.Token : s.token
+        const nextWallet = res.data?.Wallet ?? s.wallet
+        const next = {
+          token: nextToken,
+          wallet: nextWallet,
+          expiresAt: decodeJwtExpMs(nextToken) ?? s.expiresAt ?? null,
+        }
         saveSession(next)
         setState(next)
       })
@@ -49,9 +68,13 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback((token, wallet) => {
-    const next = { token, wallet }
+    const next = {
+      token,
+      wallet,
+      expiresAt: decodeJwtExpMs(token),
+    }
     saveSession(next)
-    setUserToken(token.token)
+    setUserToken(token)
     setState(next)
     setError(null)
   }, [])
@@ -64,7 +87,17 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ token: state?.token, wallet: state?.wallet, hydrating, error, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        token: state?.token,
+        wallet: state?.wallet,
+        expiresAt: state?.expiresAt,
+        hydrating,
+        error,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

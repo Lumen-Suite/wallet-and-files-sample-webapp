@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState(null)
 
   if (hydrating) return <Spinner label="Checking sign-in..." />
-  if (token?.token) { navigate('/', { replace: true }); return null }
+  if (token) { navigate('/', { replace: true }); return null }
 
   const submit = async (e) => {
     e.preventDefault()

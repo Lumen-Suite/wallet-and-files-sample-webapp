@@ -11,7 +11,9 @@ function Row({ label, value, mono }) {
 }
 
 export default function Dashboard() {
-  const { wallet, token } = useAuth()
+  const { wallet, expiresAt } = useAuth()
+  const provider = wallet?.Provider
+  const picture = provider?.ProfilePicture?.URL
 
   return (
     <div className="max-w-2xl mx-auto py-6">
@@ -21,13 +23,38 @@ export default function Dashboard() {
       </header>
 
       <section className="border border-lumen-border p-5">
+        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-lumen-border">
+          {picture ? (
+            <img
+              src={picture}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="w-12 h-12 border border-lumen-border bg-lumen-subtle"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-lumen-fg text-lumen-bg flex items-center justify-center font-semibold">
+              {provider?.AccountName?.[0]?.toUpperCase() ?? '?'}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-lumen-fg truncate">{provider?.AccountName ?? '-'}</div>
+            <div className="text-xs text-lumen-muted truncate">{provider?.Email ?? '-'}</div>
+          </div>
+          {provider?.Type && (
+            <span className="text-xs uppercase tracking-widest text-lumen-muted px-2 py-1 border border-lumen-border">
+              {provider.Type}
+            </span>
+          )}
+        </div>
+
         <h2 className="text-sm font-semibold uppercase tracking-widest text-lumen-muted mb-3">Your wallet</h2>
         <Row label="Address" value={wallet?.WalletAddress} mono />
-        <Row label="Account name" value={wallet?.Provider?.AccountName} />
-        <Row label="Email" value={wallet?.Provider?.Email} />
-        <Row label="Account type" value={wallet?.AccountType ?? 'Custodial'} />
-        {token?.expiresAt && (
-          <Row label="Session expires" value={new Date(token.expiresAt).toLocaleString()} />
+        <Row label="Wallet ID" value={wallet?.id} mono />
+        <Row label="Ownership" value={wallet?.Ownership} />
+        <Row label="Wallet type" value={wallet?.WalletType} />
+        <Row label="Organization" value={wallet?.OrganizationID} mono />
+        {expiresAt && (
+          <Row label="Session expires" value={new Date(expiresAt).toLocaleString()} />
         )}
       </section>
 

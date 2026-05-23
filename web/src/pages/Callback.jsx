@@ -24,7 +24,9 @@ export default function Callback() {
       .then((res) => {
         const Token = res.data?.Token
         const Wallet = res.data?.Wallet
-        if (!Token?.token) throw new Error('Server did not return a session token.')
+        if (typeof Token !== 'string' || !Token) {
+          throw new Error('Server did not return a session token.')
+        }
         login(Token, Wallet)
         navigate('/', { replace: true })
       })

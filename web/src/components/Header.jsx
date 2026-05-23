@@ -25,7 +25,7 @@ export default function Header() {
           </span>
         </Link>
         <nav className="text-sm flex items-center gap-4">
-          {token?.token && (
+          {token && (
             <>
               <Link to="/" className="text-lumen-muted hover:text-lumen-fg">
                 Dashboard
