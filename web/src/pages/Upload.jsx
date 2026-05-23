@@ -1,29 +1,30 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ROOT } from '../lib/path.js'
 import UploadDropzone from '../components/UploadDropzone.jsx'
+import FolderPicker from '../components/FolderPicker.jsx'
 
 export default function Upload() {
   const navigate = useNavigate()
+  const [path, setPath] = useState(ROOT)
 
   return (
     <div className="max-w-2xl mx-auto">
       <header className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Upload a file</h1>
-          <p className="text-sm text-lumen-muted mt-1">
-            Files go straight to Azure storage. The local server only sees the file's name, size, and a short fingerprint.
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Upload a file</h1>
         <div className="flex items-center gap-2">
           <Link to="/files" className="border border-lumen-border px-4 py-2 text-sm hover:bg-lumen-row-hover">
             My files
           </Link>
-          <Link to="/" className="border border-lumen-border px-4 py-2 text-sm hover:bg-lumen-row-hover">
-            Dashboard
-          </Link>
         </div>
       </header>
 
-      <UploadDropzone onUploaded={() => setTimeout(() => navigate('/files'), 1200)} />
+      <section className="mb-6">
+        <h2 className="text-xs uppercase tracking-wider text-lumen-muted mb-2">Folder</h2>
+        <FolderPicker value={path} onChange={setPath} />
+      </section>
+
+      <UploadDropzone path={path} onUploaded={() => setTimeout(() => navigate('/files'), 1200)} />
     </div>
   )
 }

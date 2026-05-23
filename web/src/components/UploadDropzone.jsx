@@ -3,8 +3,9 @@ import axios from 'axios'
 import { api, extractError } from '../api/client.js'
 import { computeMd5Base64, stripExt, extOf } from '../lib/md5.js'
 
-export default function UploadDropzone({ onUploaded }) {
+export default function UploadDropzone({ path = '/', onUploaded }) {
   const [file, setFile] = useState(null)
+  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('idle')
@@ -17,14 +18,28 @@ export default function UploadDropzone({ onUploaded }) {
   const pick = (chosen) => {
     if (!chosen) return
     setFile(chosen)
+    setName(stripExt(chosen.name))
+    setDescription('')
     setError(null)
     setSuccess(null)
     setStage('idle')
     setProgress(0)
   }
 
+  const reset = () => {
+    setFile(null)
+    setName('')
+    setDescription('')
+    setStage('idle')
+    setProgress(0)
+    setError(null)
+  }
+
+  const trimmedName = name.trim()
+  const canUpload = !busy && trimmedName.length > 0
+
   const upload = async () => {
-    if (!file) return
+    if (!file || !trimmedName) return
     setBusy(true)
     setError(null)
     setSuccess(null)
@@ -34,9 +49,9 @@ export default function UploadDropzone({ onUploaded }) {
 
       setStage('requesting-sas')
       const { data } = await api.post(
-        '/user/files?path=/',
+        `/user/files?path=${encodeURIComponent(path || '/')}`,
         {
-          Name: stripExt(file.name),
+          Name: trimmedName,
           FileExtension: extOf(file.name) || 'bin',
           Checksum,
           Description: description,
@@ -60,8 +75,9 @@ export default function UploadDropzone({ onUploaded }) {
 
       setStage('done')
       setProgress(100)
-      setSuccess({ name: file.name, workflowId: data.WorkflowID })
+      setSuccess({ name: trimmedName, original: file.name, workflowId: data.WorkflowID })
       setFile(null)
+      setName('')
       setDescription('')
       onUploaded?.()
     } catch (e) {
@@ -80,6 +96,8 @@ export default function UploadDropzone({ onUploaded }) {
     done: 'Uploaded',
     error: 'Failed',
   }
+
+  const ext = file ? (extOf(file.name) || 'bin') : ''
 
   return (
     <div>
@@ -138,13 +156,7 @@ export default function UploadDropzone({ onUploaded }) {
             {!busy && stage !== 'done' && (
               <button
                 type="button"
-                onClick={() => {
-                  setFile(null)
-                  setDescription('')
-                  setStage('idle')
-                  setProgress(0)
-                  setError(null)
-                }}
+                onClick={reset}
                 className="text-xs text-lumen-muted hover:text-lumen-fg"
               >
                 Remove
@@ -153,16 +165,44 @@ export default function UploadDropzone({ onUploaded }) {
           </div>
 
           {stage !== 'done' && (
-            <label className="block">
-              <span className="text-xs uppercase tracking-wider text-lumen-muted">Description (optional)</span>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                disabled={busy}
-                className="mt-1 w-full border border-lumen-border focus:border-lumen-fg outline-none px-3 py-2 text-sm"
-              />
-            </label>
+            <>
+              <label className="block">
+                <span className="text-xs uppercase tracking-wider text-lumen-muted">Name</span>
+                <div className="mt-1 flex items-stretch border border-lumen-border focus-within:border-lumen-fg">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="File name"
+                    disabled={busy}
+                    maxLength={255}
+                    className="flex-1 px-3 py-2 text-sm outline-none disabled:opacity-60"
+                  />
+                  {ext && (
+                    <span className="px-3 py-2 text-sm text-lumen-muted border-l border-lumen-border bg-lumen-subtle font-mono">
+                      .{ext}
+                    </span>
+                  )}
+                </div>
+                <span className="block text-xs text-lumen-muted mt-1">
+                  Defaults to the file's name without the extension. You can change it before upload — the extension stays the same.
+                </span>
+                {!trimmedName && (
+                  <span className="block text-xs text-lumen-error mt-1">Name is required.</span>
+                )}
+              </label>
+
+              <label className="block">
+                <span className="text-xs uppercase tracking-wider text-lumen-muted">Description (optional)</span>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
+                  disabled={busy}
+                  className="mt-1 w-full border border-lumen-border focus:border-lumen-fg outline-none px-3 py-2 text-sm"
+                />
+              </label>
+            </>
           )}
 
           {(stage === 'uploading' || stage === 'done') && (
@@ -178,8 +218,8 @@ export default function UploadDropzone({ onUploaded }) {
             <button
               type="button"
               onClick={upload}
-              disabled={busy}
-              className="w-full bg-lumen-fg text-lumen-bg px-4 py-2 text-sm hover:opacity-90 disabled:opacity-40"
+              disabled={!canUpload}
+              className="w-full bg-lumen-fg text-lumen-bg px-4 py-2 text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {busy ? labelForStage[stage] : 'Upload'}
             </button>
@@ -197,7 +237,12 @@ export default function UploadDropzone({ onUploaded }) {
       {success && (
         <div className="mt-4 border border-lumen-success p-3 text-sm">
           <div className="font-medium text-lumen-success mb-1">Uploaded</div>
-          <div className="text-lumen-fg">{success.name}</div>
+          <div className="text-lumen-fg">
+            {success.name}
+            {success.original && success.original !== success.name && (
+              <span className="text-xs text-lumen-muted ml-2">(was {success.original})</span>
+            )}
+          </div>
           {success.workflowId && (
             <div className="text-xs text-lumen-muted mt-1">
               Workflow: <code className="font-mono">{success.workflowId}</code>
