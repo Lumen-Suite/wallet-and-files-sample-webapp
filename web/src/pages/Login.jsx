@@ -29,7 +29,7 @@ export default function Login() {
     setError(null)
     try {
       const { data } = await api.post('/auth/login-config', {
-        AllowedLoginMethods: { SocialMedia: socials },
+        AllowedLoginMethods: { Wallets: [], SocialMedia: socials },
         RedirectURL: import.meta.env.VITE_CALLBACK_URL,
       })
       if (data?.LoginURL) window.location.href = data.LoginURL

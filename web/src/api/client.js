@@ -16,5 +16,10 @@ api.interceptors.request.use((cfg) => {
 })
 
 export function extractError(err) {
-  return err?.response?.data?.error || err?.message || 'Something went wrong.'
+  const d = err?.response?.data
+  if (d) {
+    if (typeof d === 'string') return d
+    return d.error || d.errorMsg || d.message || d.details || JSON.stringify(d)
+  }
+  return err?.message || 'Something went wrong.'
 }

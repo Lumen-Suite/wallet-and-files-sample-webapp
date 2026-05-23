@@ -20,6 +20,7 @@ const md5Base64 = z.string().regex(/^[A-Za-z0-9+/]{22}==$/, 'Checksum must be ba
 
 export const loginConfigBody = z.object({
   AllowedLoginMethods: z.object({
+    Wallets: z.array(z.enum(['METAMASK'])).default([]),
     SocialMedia: z.array(z.enum(['GOOGLE', 'FACEBOOK'])).min(1),
   }),
   RedirectURL: z.string().url(),

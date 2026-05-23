@@ -29,6 +29,7 @@ The body must be JSON. Validated by Zod before the request leaves your server.
 ```json
 {
   "AllowedLoginMethods": {
+    "Wallets": [],
     "SocialMedia": ["GOOGLE", "FACEBOOK"]
   },
   "RedirectURL": "http://localhost:5173/callback"
@@ -37,10 +38,11 @@ The body must be JSON. Validated by Zod before the request leaves your server.
 
 | Field | Type | Notes |
 |---|---|---|
+| `AllowedLoginMethods.Wallets` | array (required) | Always present, even if empty. This sample sends `[]`. |
 | `AllowedLoginMethods.SocialMedia` | array (required, non-empty) | One or both of `"GOOGLE"`, `"FACEBOOK"`. |
 | `RedirectURL` | string (a real URL) | Must match a redirect URL you registered on your API key. |
 
-> **Heads up:** `SocialMedia` must contain at least one method. An empty array (or omitting the field) is a `400`.
+> **Heads up:** Both `Wallets` and `SocialMedia` must be present. Omitting `Wallets` makes Lumen reply with `errorCode: "INPUT_REQUEST_INVALID"`. `SocialMedia` must contain at least one method.
 
 ### Example
 
