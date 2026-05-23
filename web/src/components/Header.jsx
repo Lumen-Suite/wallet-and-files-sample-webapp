@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import Spinner from './Spinner.jsx'
 
 export default function Header() {
-  const { token, logout } = useAuth()
+  const { token, signingOut, logout } = useAuth()
   const navigate = useNavigate()
 
   const onSignOut = async () => {
@@ -42,9 +43,10 @@ export default function Header() {
               <button
                 type="button"
                 onClick={onSignOut}
-                className="border border-lumen-fg px-3 py-1 text-sm hover:bg-lumen-fg hover:text-lumen-bg"
+                disabled={signingOut}
+                className="border border-lumen-fg px-3 py-1 text-sm hover:bg-lumen-fg hover:text-lumen-bg disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Sign out
+                {signingOut ? <Spinner inline label="Signing out..." /> : 'Sign out'}
               </button>
             </>
           )}

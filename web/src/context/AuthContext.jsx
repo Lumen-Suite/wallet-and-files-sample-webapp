@@ -31,6 +31,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [state, setState] = useState(() => readSession())
   const [hydrating, setHydrating] = useState(!!readSession())
+  const [signingOut, setSigningOut] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -80,10 +81,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(async () => {
+    setSigningOut(true)
     try { await api.delete('/auth/logout') } catch (e) { setError(extractError(e)) }
     clearSession()
     setUserToken(null)
     setState(null)
+    setSigningOut(false)
   }, [])
 
   return (
@@ -93,6 +96,7 @@ export function AuthProvider({ children }) {
         wallet: state?.wallet,
         expiresAt: state?.expiresAt,
         hydrating,
+        signingOut,
         error,
         login,
         logout,
