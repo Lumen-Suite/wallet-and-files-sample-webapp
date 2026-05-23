@@ -34,6 +34,15 @@ export const listQuery = z.object({
   'sort[0][order]': z.enum(['asc', 'desc']).optional(),
 }).passthrough()
 
+export const directoryListQuery = z.object({
+  path: pathSchema,
+  pageNumber: numericString(1, 10000, 1),
+  pageSize: numericString(1, 100, 10),
+  search: z.string().max(200).optional(),
+  'sort[0][field]': sortFieldSchema,
+  'sort[0][order]': z.enum(['asc', 'desc']).optional(),
+}).passthrough()
+
 export const pathOnlyQuery = z.object({ path: pathSchema }).passthrough()
 
 export const uploadBody = z.object({

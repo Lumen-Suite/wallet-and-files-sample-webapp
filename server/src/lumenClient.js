@@ -1,11 +1,8 @@
 import axios from 'axios'
 
-let client = null
-
-function getClient() {
-  if (client) return client
-  client = axios.create({
-    baseURL: process.env.LUMEN_API_BASE_URL,
+function makeClient(baseURL) {
+  const client = axios.create({
+    baseURL,
     headers: { 'Content-Type': 'application/json' },
     timeout: 30000,
   })
@@ -19,4 +16,18 @@ function getClient() {
   return client
 }
 
-export const callLumen = (opts) => getClient().request(opts)
+let walletsClient = null
+let filesClient = null
+
+function getWalletsClient() {
+  if (!walletsClient) walletsClient = makeClient(process.env.LUMEN_API_BASE_URL)
+  return walletsClient
+}
+
+function getFilesClient() {
+  if (!filesClient) filesClient = makeClient(process.env.LUMEN_FILES_API_BASE_URL)
+  return filesClient
+}
+
+export const callLumen = (opts) => getWalletsClient().request(opts)
+export const callLumenFiles = (opts) => getFilesClient().request(opts)

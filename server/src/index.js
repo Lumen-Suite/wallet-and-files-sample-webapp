@@ -16,6 +16,7 @@ import { errorHandler } from './middleware/errorHandler.js'
 import authRoutes from './routes/auth.routes.js'
 import filesRoutes from './routes/files.routes.js'
 import walletsRoutes from './routes/wallets.routes.js'
+import directoryRoutes from './routes/directory.routes.js'
 
 assertEnv()
 
@@ -62,6 +63,7 @@ app.use('/api', apiLimiter)
 app.use('/api', authRoutes)
 app.use('/api', filesRoutes)
 app.use('/api', walletsRoutes)
+app.use('/api', directoryRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ ok: false, status: 404, error: `Route not found: ${req.method} ${req.originalUrl}` })
