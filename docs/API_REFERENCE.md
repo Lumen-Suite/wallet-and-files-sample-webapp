@@ -4,7 +4,9 @@
   <img src="images/lumen-logo.svg" alt="Lumen" width="100" />
 </p>
 
-This page lists the seven internet addresses (routes) the local Express server provides. The website part of the app uses them automatically as you click through the sign-in flow, browse files, and upload — **you don't need to call them by hand** unless you're curious, debugging, or building something on top of this sample.
+This page lists the eight internet addresses (routes) the local Express server provides. The website part of the app uses them automatically as you click through the sign-in flow, browse files, and upload — **you don't need to call them by hand** unless you're curious, debugging, or building something on top of this sample.
+
+> **Two upstream services.** This sample talks to two Lumen services from the local server: the **wallets API** for auth, user files, and transactions, and the **files API** for directory listings (so the Upload page can show you which folders exist). One API key works for both; you just configure two base URLs in `.env`: `LUMEN_API_BASE_URL` (wallets) and `LUMEN_FILES_API_BASE_URL` (files).
 
 > **Note:** A **route** is a specific URL path the server responds to. For example, `GET /api/user/files` is a route. **GET**, **POST**, and **DELETE** are HTTP methods. **GET** means "ask for data". **POST** means "submit data". **DELETE** means "destroy this resource".
 
@@ -380,6 +382,53 @@ The Transactions page treats a row whose `Log.From` matches your wallet address 
 `GET {LUMEN_API_BASE_URL}/wallets/Custodial/{WalletAddress}/transactions`
 
 > **Note on persona:** this is an organization-side Lumen endpoint (uses `lumen-api-key` + `lumen-api-secret` server-side), but the Transactions page only ever calls it with the signed-in user's own address. If you fork this sample to expose it to the public internet, add a server-side check that the `:addr` matches the authenticated user's wallet.
+
+---
+
+## Route 8 — List folders and files at a path
+
+### `GET /api/directoryItems?path=/`
+
+Lists the contents (files + folders) of a path in your organization's storage. The Upload page calls this once on mount to populate the folder picker.
+
+> **Heads up:** unlike the other routes, this one talks to the **files API** (`LUMEN_FILES_API_BASE_URL`), not the wallets API. The local server holds both base URLs and decides which to use per route.
+
+### Query parameters
+
+| Name | Type | Default | What it does |
+|---|---|---|---|
+| `path` | string (required) | — | Which path to list. URL-encoded. `/` is the root. |
+| `pageNumber` | integer (1 to 10000) | 1 | Which page of results. |
+| `pageSize` | integer (1 to 100) | 10 | How many rows per page. |
+| `search` | string (up to 200 chars) | — | Optional full-text search across item names. |
+| `sort[0][field]` | string | — | One of: `Name`, `_ts`, `FileExtension`, `CreatedAt`, `UpdatedAt`, `OwnerAddress`. |
+| `sort[0][order]` | `asc` or `desc` | — | Sort direction. |
+
+### Example
+
+```
+curl "http://localhost:8787/api/directoryItems?path=/&pageSize=20"
+```
+
+> **What you should see:** a JSON object with an `Items` array. Each entry has a `Type` (`"file"` or `"folder"`) — the Upload page filters to `Type === 'folder'` and uses the names to fill the dropdown.
+
+### Response shape
+
+```json
+{
+  "Items": [
+    { "Name": "Contract A", "Path": "/", "Type": "folder", "FolderType": "directory", "id": "folder-Contract A" },
+    { "Name": "Peace.png", "Path": "/", "Type": "file", "FileExtension": "png", "id": "file-Peace.png" }
+  ],
+  "Pagination": { "TotalRowCount": 2, "TotalPage": 1, "CurrentPage": 1 }
+}
+```
+
+### What it wraps
+
+`GET {LUMEN_FILES_API_BASE_URL}/directoryItems/{Path}`
+
+> **Persona note:** like Routes 5–7, this is an organization-side endpoint reaching the org's storage tree via the org's `lumen-api-key` + `lumen-api-secret`. The Upload page uses it to show available folders — it does not filter by the signed-in user's wallet on the server. For a public deployment, you would want to scope this to the user's own subtree.
 
 ---
 

@@ -147,6 +147,7 @@ Open `.env` in any text editor — Notepad on Windows, TextEdit on macOS, or VS 
 
 ```
 LUMEN_API_BASE_URL=https://lumen-apim-stg.azure-api.net/wallet
+LUMEN_FILES_API_BASE_URL=https://lumen-apim-stg.azure-api.net/file
 LUMEN_API_KEY=paste-your-api-key-here
 LUMEN_API_SECRET=paste-your-api-secret-here
 SERVER_PORT=8787
@@ -154,6 +155,8 @@ ALLOWED_ORIGIN=http://localhost:5173
 VITE_BFF_URL=http://localhost:8787
 VITE_CALLBACK_URL=http://localhost:5173/callback
 ```
+
+> **Two Lumen URLs?** This sample talks to two services: the wallets API for sign-in and uploads, and the files API to list directories (so the upload page can show you which folders already exist). One API key works for both.
 
 Replace the `paste-your-...-here` text with the real values from Step 2.
 
