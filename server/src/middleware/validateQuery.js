@@ -20,12 +20,8 @@ const md5Base64 = z.string().regex(/^[A-Za-z0-9+/]{22}==$/, 'Checksum must be ba
 
 export const loginConfigBody = z.object({
   AllowedLoginMethods: z.object({
-    Wallets: z.array(z.enum(['METAMASK'])).optional(),
-    SocialMedia: z.array(z.enum(['GOOGLE', 'FACEBOOK'])).optional(),
-  }).refine(
-    (m) => (m.Wallets?.length || 0) + (m.SocialMedia?.length || 0) > 0,
-    { message: 'At least one login method (Wallets or SocialMedia) must be provided' },
-  ),
+    SocialMedia: z.array(z.enum(['GOOGLE', 'FACEBOOK'])).min(1),
+  }),
   RedirectURL: z.string().url(),
 }).passthrough()
 

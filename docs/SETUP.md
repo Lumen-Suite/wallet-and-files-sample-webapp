@@ -214,7 +214,7 @@ Open your browser and go to:
 
 [http://localhost:5173](http://localhost:5173)
 
-The sign-in card loads. Pick which login methods you want allowed (Google, Facebook, MetaMask — leave them all checked if you're not sure) and click **"Continue to BridgePass"**.
+The sign-in card loads. Pick which login methods you want allowed (Google, Facebook — leave them both checked if you're not sure) and click **"Continue to BridgePass"**.
 
 You'll be sent to a separate page hosted by Lumen called BridgePass. Complete the login there. When you finish, BridgePass sends your browser back to this app, and you land on the dashboard.
 

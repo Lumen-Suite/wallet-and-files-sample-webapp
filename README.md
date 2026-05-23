@@ -4,7 +4,7 @@
   <img src="docs/images/lumen-logo.svg" alt="Lumen" width="120" />
 </p>
 
-This is a small, friendly example application that demonstrates the **Lumen BridgePass** sign-in flow from an end-user's perspective, then lets that signed-in user browse and upload their personal files. You click "Sign in", complete the login on BridgePass (using Google, Facebook, or MetaMask), get redirected back, and land on a dashboard with your wallet info plus two buttons: **View my files** and **Upload a file**. You do **not** need to know how to code to run it. If you can install a program from a website and edit a text file, you can have this working on your computer in about ten minutes.
+This is a small, friendly example application that demonstrates the **Lumen BridgePass** sign-in flow from an end-user's perspective, then lets that signed-in user browse and upload their personal files. You click "Sign in", complete the login on BridgePass (using Google or Facebook), get redirected back, and land on a dashboard with your wallet info plus two buttons: **View my files** and **Upload a file**. You do **not** need to know how to code to run it. If you can install a program from a website and edit a text file, you can have this working on your computer in about ten minutes.
 
 > **What this is for:** Two kinds of people. (1) Developers who want to see the full Lumen end-user experience — sign-in plus personal file ops — wired together. (2) Non-coders who want to try it out without writing any code.
 
@@ -103,13 +103,13 @@ Open Chrome (or any browser) and go to:
 
 [http://localhost:5173](http://localhost:5173)
 
-The sign-in page appears. Click **"Continue to BridgePass"**. Complete the login on the BridgePass page (with Google, Facebook, or MetaMask). You'll be sent back to this app, and you'll land on the dashboard. From there you can click **View my files** to see your files, or **Upload a file** to drop a new one in. That's it — you're done.
+The sign-in page appears. Click **"Continue to BridgePass"**. Complete the login on the BridgePass page (with Google or Facebook). You'll be sent back to this app, and you'll land on the dashboard. From there you can click **View my files** to see your files, or **Upload a file** to drop a new one in. That's it — you're done.
 
 ---
 
 ## What you'll see
 
-**Sign-in page** — a card with a short explanation and a row of checkboxes for which login methods you want to allow (Google, Facebook, MetaMask). Pick any combination and click **"Continue to BridgePass"**.
+**Sign-in page** — a card with a short explanation and a row of checkboxes for which login methods you want to allow (Google, Facebook). Pick either or both and click **"Continue to BridgePass"**.
 
 **BridgePass** — a separate page hosted by Lumen, where the actual login happens. You complete it like any social login.
 

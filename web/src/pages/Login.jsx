@@ -10,7 +10,6 @@ export default function Login() {
   const navigate = useNavigate()
   const [google, setGoogle] = useState(true)
   const [facebook, setFacebook] = useState(true)
-  const [metamask, setMetamask] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
@@ -22,8 +21,7 @@ export default function Login() {
     const socials = []
     if (google) socials.push('GOOGLE')
     if (facebook) socials.push('FACEBOOK')
-    const wallets = metamask ? ['METAMASK'] : []
-    if (socials.length === 0 && wallets.length === 0) {
+    if (socials.length === 0) {
       setError('Pick at least one sign-in method.')
       return
     }
@@ -31,10 +29,7 @@ export default function Login() {
     setError(null)
     try {
       const { data } = await api.post('/auth/login-config', {
-        AllowedLoginMethods: {
-          ...(wallets.length ? { Wallets: wallets } : {}),
-          ...(socials.length ? { SocialMedia: socials } : {}),
-        },
+        AllowedLoginMethods: { SocialMedia: socials },
         RedirectURL: import.meta.env.VITE_CALLBACK_URL,
       })
       if (data?.LoginURL) window.location.href = data.LoginURL
@@ -64,10 +59,6 @@ export default function Login() {
           <label className="flex items-center gap-2 py-1">
             <input type="checkbox" checked={facebook} onChange={(e) => setFacebook(e.target.checked)} />
             <span>Facebook</span>
-          </label>
-          <label className="flex items-center gap-2 py-1">
-            <input type="checkbox" checked={metamask} onChange={(e) => setMetamask(e.target.checked)} />
-            <span>MetaMask</span>
           </label>
         </fieldset>
 

@@ -61,11 +61,11 @@ The browser never sees the secret. Even if someone inspects every byte of the Ja
 
 This is the first core mechanic. It's a 10-step dance that happens every time a user signs in.
 
-1. The user opens the app and lands on `/login`. The React page asks the Express server, "give me a BridgePass login URL". This is `POST /api/auth/login-config` with a small body describing which login methods are allowed (Google, Facebook, MetaMask) and where to send the user back (the `RedirectURL` — set to `http://localhost:5173/callback`).
+1. The user opens the app and lands on `/login`. The React page asks the Express server, "give me a BridgePass login URL". This is `POST /api/auth/login-config` with a small body describing which login methods are allowed (Google, Facebook) and where to send the user back (the `RedirectURL` — set to `http://localhost:5173/callback`).
 2. The Express server forwards that request to Lumen, with your API key and secret attached. Lumen replies with a `LoginURL` (a long https link that points at BridgePass) and a `Config` object.
 3. The Express server hands that reply back to the browser.
 4. The React page sets `window.location.href` to the `LoginURL`. The browser leaves your app and lands on the BridgePass page.
-5. On BridgePass, the user picks a login method and completes it (Google sign-in, Facebook sign-in, or MetaMask wallet signature).
+5. On BridgePass, the user picks a login method and completes it (Google sign-in or Facebook sign-in).
 6. BridgePass verifies the result and redirects the browser back to `http://localhost:5173/callback?AuthCode=...`. The `AuthCode` is a short-lived, single-use proof that the user really did finish the login. It expires fast.
 7. The React `/callback` page reads the `AuthCode` from the URL and immediately sends it to the Express server. This is `GET /api/auth/access-token` with the AuthCode in a header called `lumen-authentication-code`.
 8. The Express server forwards that to Lumen. Lumen verifies the AuthCode, marks it as spent, and replies with a `Token` (the session token) plus a `Wallet` object describing the user's wallet.

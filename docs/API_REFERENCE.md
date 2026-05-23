@@ -29,7 +29,6 @@ The body must be JSON. Validated by Zod before the request leaves your server.
 ```json
 {
   "AllowedLoginMethods": {
-    "Wallets": ["METAMASK"],
     "SocialMedia": ["GOOGLE", "FACEBOOK"]
   },
   "RedirectURL": "http://localhost:5173/callback"
@@ -38,11 +37,10 @@ The body must be JSON. Validated by Zod before the request leaves your server.
 
 | Field | Type | Notes |
 |---|---|---|
-| `AllowedLoginMethods.Wallets` | array, optional | Currently only `"METAMASK"` is supported. |
-| `AllowedLoginMethods.SocialMedia` | array, optional | One or both of `"GOOGLE"`, `"FACEBOOK"`. |
+| `AllowedLoginMethods.SocialMedia` | array (required, non-empty) | One or both of `"GOOGLE"`, `"FACEBOOK"`. |
 | `RedirectURL` | string (a real URL) | Must match a redirect URL you registered on your API key. |
 
-> **Heads up:** You must include at least one method between `Wallets` and `SocialMedia`. Sending both arrays empty (or omitting both) is a `400`.
+> **Heads up:** `SocialMedia` must contain at least one method. An empty array (or omitting the field) is a `400`.
 
 ### Example
 
