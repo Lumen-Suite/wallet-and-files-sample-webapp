@@ -127,6 +127,8 @@ The sign-in page appears. Click **"Continue to BridgePass"**. Complete the login
 
 **Upload page** — a drag-and-drop zone (or a click-to-choose-file fallback). When you drop a file, the browser computes a fingerprint, asks the local server for an upload slot, and then uploads the file directly to Azure storage with a progress bar. When it's done, you're sent back to the My Files page.
 
+**Transactions page** — a paginated list of on-chain activity for your wallet. Outgoing transactions are shown in red with a minus sign; incoming ones are green with a plus sign.
+
 > **Note:** A **session** is the period during which the app considers you logged in. Sessions expire on purpose, so a forgotten browser tab can't stay authenticated forever.
 
 ---

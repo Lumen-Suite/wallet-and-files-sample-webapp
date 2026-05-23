@@ -4,7 +4,7 @@
   <img src="images/lumen-logo.svg" alt="Lumen" width="100" />
 </p>
 
-This page lists the six internet addresses (routes) the local Express server provides. The website part of the app uses them automatically as you click through the sign-in flow, browse files, and upload — **you don't need to call them by hand** unless you're curious, debugging, or building something on top of this sample.
+This page lists the seven internet addresses (routes) the local Express server provides. The website part of the app uses them automatically as you click through the sign-in flow, browse files, and upload — **you don't need to call them by hand** unless you're curious, debugging, or building something on top of this sample.
 
 > **Note:** A **route** is a specific URL path the server responds to. For example, `GET /api/user/files` is a route. **GET**, **POST**, and **DELETE** are HTTP methods. **GET** means "ask for data". **POST** means "submit data". **DELETE** means "destroy this resource".
 
@@ -320,6 +320,66 @@ Azure verifies the fingerprint when the bytes land. A mismatch is rejected (the 
 ### What it wraps
 
 `POST {LUMEN_API_BASE_URL}/user/files/{Path}` — where `{Path}` is the URL-encoded value of the `path` query parameter.
+
+---
+
+## Route 7 — List on-chain transactions for a wallet
+
+### `GET /api/wallets/Custodial/:addr/transactions`
+
+Returns a paginated list of on-chain transactions (sent and received) for the given wallet **address**.
+
+> **Heads up:** This route is reached by the **Transactions** page in the React app. The page reads the signed-in user's own `WalletAddress` from the session and passes it as `:addr` — you never type the address by hand.
+
+### Path parameter
+
+| Name | What it is |
+|---|---|
+| `:addr` | The wallet's `WalletAddress` — a long hexadecimal string starting with `0x`. The Transactions page fills this in for you from your signed-in wallet. |
+
+### Query parameters
+
+| Name | Type | Default | What it does |
+|---|---|---|---|
+| `pageNumber` | integer (1 to 10000) | 1 | Which page of results to return. |
+| `pageSize` | integer (1 to 100) | 10 | How many rows per page. |
+
+> **Note:** Unlike the file list, this route does not support `search` or `sort` parameters — the upstream Lumen endpoint orders transactions chronologically.
+
+### Example
+
+```
+curl "http://localhost:8787/api/wallets/Custodial/0x1234abcd/transactions?pageNumber=1&pageSize=5"
+```
+
+> **What you should see:** A JSON object with a `Transactions` array and pagination info.
+
+### Response shape
+
+```json
+{
+  "Transactions": [
+    {
+      "id": "tx-abc123",
+      "Log": {
+        "From": "0x1234...abcd",
+        "To": "0x5678...efgh",
+        "Value": "0.05",
+        "Hash": "0xfeed...beef"
+      }
+    }
+  ],
+  "Pagination": { "TotalRowCount": 18, "TotalPage": 4, "CurrentPage": 1 }
+}
+```
+
+The Transactions page treats a row whose `Log.From` matches your wallet address as **outgoing** (shown in red with a minus sign) and everything else as **incoming** (green with a plus sign).
+
+### What it wraps
+
+`GET {LUMEN_API_BASE_URL}/wallets/Custodial/{WalletAddress}/transactions`
+
+> **Note on persona:** this is an organization-side Lumen endpoint (uses `lumen-api-key` + `lumen-api-secret` server-side), but the Transactions page only ever calls it with the signed-in user's own address. If you fork this sample to expose it to the public internet, add a server-side check that the `:addr` matches the authenticated user's wallet.
 
 ---
 

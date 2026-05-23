@@ -33,6 +33,9 @@ export default function Header() {
               <Link to="/files" className="text-lumen-muted hover:text-lumen-fg">
                 My files
               </Link>
+              <Link to="/transactions" className="text-lumen-muted hover:text-lumen-fg">
+                Transactions
+              </Link>
               <Link to="/upload" className="text-lumen-muted hover:text-lumen-fg">
                 Upload
               </Link>

@@ -113,7 +113,8 @@ This is the second core mechanic, unique to this sample. A user file is not sent
 │       │   └── validateQuery.js  Zod schemas (login-config body, list query, path query, upload body) + requireUserToken
 │       └── routes/
 │           ├── auth.routes.js    the 4 proxied auth routes
-│           └── files.routes.js   the 2 proxied user-file routes
+│           ├── files.routes.js   the 2 proxied user-file routes
+│           └── wallets.routes.js the proxied wallet-transactions route
 └── web/                   Vite + React
     ├── vite.config.js     envDir set to '..' so it reads root .env
     ├── tailwind.config.js
@@ -145,6 +146,7 @@ This is the second core mechanic, unique to this sample. A user file is not sent
             ├── Dashboard.jsx     (protected) wallet info card + nav buttons
             ├── MyFiles.jsx       (protected) paginated file table + search + sort
             ├── Upload.jsx        (protected) drag-drop + MD5 + PUT-to-SAS with progress
+            ├── Transactions.jsx  (protected) paginated on-chain history for the signed-in wallet
             └── NotFound.jsx
 ```
 

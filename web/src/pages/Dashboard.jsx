@@ -33,6 +33,7 @@ export default function Dashboard() {
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link to="/files" className="border border-lumen-fg px-4 py-2 text-sm hover:bg-lumen-fg hover:text-lumen-bg">View my files</Link>
+        <Link to="/transactions" className="border border-lumen-fg px-4 py-2 text-sm hover:bg-lumen-fg hover:text-lumen-bg">View my transactions</Link>
         <Link to="/upload" className="bg-lumen-fg text-lumen-bg px-4 py-2 text-sm hover:opacity-90">Upload a file</Link>
       </div>
     </div>
