@@ -32,7 +32,7 @@ r.post('/user/files',
       const { data } = await callLumen({
         method: 'POST',
         url: `/user/files/${encodeURIComponent(path)}`,
-        data: req.body,
+        data: { ...req.body, Path: path },
         _userToken: req.userToken,
       })
       res.json(data)
