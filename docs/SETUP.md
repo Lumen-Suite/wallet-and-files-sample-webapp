@@ -1,4 +1,4 @@
-# Setup Guide
+﻿# Setup Guide
 
 <p align="center">
   <img src="images/lumen-logo.svg" alt="Lumen" width="100" />
@@ -21,15 +21,15 @@ This is the long, no-experience-required version of the installation guide. If y
 
 ---
 
-## Step 1 — Install Node.js
+## Step 1 â€” Install Node.js
 
 **Node.js** is the program that runs the code in this sample. Think of it like a kitchen appliance: the recipe (the project's code) doesn't do anything until you plug in the appliance (Node.js).
 
 ### What to do
 
 1. Go to [https://nodejs.org](https://nodejs.org) in your browser.
-2. Download the **LTS** version (it stands for "Long-Term Support" — the stable version most people use). It's the button labeled "Recommended For Most Users".
-3. Run the installer file you just downloaded. Click "Next" through every screen — the default choices are correct.
+2. Download the **LTS** version (it stands for "Long-Term Support" â€” the stable version most people use). It's the button labeled "Recommended For Most Users".
+3. Run the installer file you just downloaded. Click "Next" through every screen â€” the default choices are correct.
 
 ### What to expect
 
@@ -49,24 +49,24 @@ node --version
 
 > **What you should see:** Something like `v20.10.0` or `v22.x.x`. As long as the first number is **20 or higher**, you're good.
 
-> **If something looks wrong:** If you see "command not found" or "is not recognized", close the terminal window completely, open a fresh one, and try again. Sometimes a system restart is needed after installation — that's normal.
+> **If something looks wrong:** If you see "command not found" or "is not recognized", close the terminal window completely, open a fresh one, and try again. Sometimes a system restart is needed after installation â€” that's normal.
 
 ---
 
-## Step 2 — Get your Lumen credentials
+## Step 2 â€” Get your Lumen credentials
 
 Follow [GET_CREDENTIALS.md](GET_CREDENTIALS.md) and come back here with two values written down:
 
-- `LUMEN_API_KEY` — looks like a long random string of letters and numbers.
-- `LUMEN_API_SECRET` — looks similar but is the secret half.
+- `LUMEN_API_KEY` â€” looks like a long random string of letters and numbers.
+- `LUMEN_API_SECRET` â€” looks similar but is the secret half.
 
 > **Heads up:** The secret is usually displayed only once. If you close the page before copying it, you'll have to throw it away and create a new key.
 
 ---
 
-## Step 3 — Register the callback URL on your API key
+## Step 3 â€” Register the callback URL on your API key
 
-This is the step that trips up almost every first-time user. BridgePass will refuse to send users back to your app unless the exact callback URL is on its allowlist — and that allowlist is configured per API key, not globally.
+This is the step that trips up almost every first-time user. BridgePass will refuse to send users back to your app unless the exact callback URL is on its allowlist â€” and that allowlist is configured per API key, not globally.
 
 ### What to do
 
@@ -87,27 +87,27 @@ http://localhost:5173/callback
 
 ---
 
-## Step 4 — Download this project
+## Step 4 â€” Download this project
 
-### Option A — The easy way (no Git needed)
+### Option A â€” The easy way (no Git needed)
 
 1. On the project's GitHub page, click the green **"Code"** button.
 2. Click **"Download ZIP"**.
 3. Open the downloaded ZIP file and extract (unzip) it into a folder you can find later. Your **Documents** folder is a good choice.
 
-### Option B — With Git
+### Option B â€” With Git
 
 If you already have Git (a tool developers use), open a terminal and run:
 
 ```
-git clone https://github.com/Bayanichain/wallet-and-files-sample-webapp.git
+git clone https://github.com/Lumen-Suite/wallet-and-files-sample-webapp.git
 ```
 
 > **What you should see (either option):** A new folder named `wallet-and-files-sample-webapp` containing files like `package.json`, `README.md`, a `server` folder, and a `web` folder.
 
 ---
 
-## Step 5 — Open the folder in a terminal
+## Step 5 â€” Open the folder in a terminal
 
 You need to be "inside" the project folder for the next commands to work. "Inside" just means the terminal is pointing at that folder when you type commands.
 
@@ -126,7 +126,7 @@ Replace `YOU` (Windows) or `~/Documents/...` (macOS/Linux) with the actual path 
 
 ---
 
-## Step 6 — Create your `.env` file
+## Step 6 â€” Create your `.env` file
 
 The `.env` file is where you'll write your secret values. It's a plain text file with one setting per line. The project ships with a template called `.env.example`. You need to copy that template into a real file named `.env`.
 
@@ -143,7 +143,7 @@ Run the command for your computer:
 
 ### Now edit the file
 
-Open `.env` in any text editor — Notepad on Windows, TextEdit on macOS, or VS Code if you have it. You'll see something like:
+Open `.env` in any text editor â€” Notepad on Windows, TextEdit on macOS, or VS Code if you have it. You'll see something like:
 
 ```
 LUMEN_API_BASE_URL=https://lumen-apim-stg.azure-api.net/wallet
@@ -171,7 +171,7 @@ Save the file when you're done.
 
 ---
 
-## Step 7 — Install the project's libraries
+## Step 7 â€” Install the project's libraries
 
 Software projects depend on lots of small helper packages (libraries) written by other people. The next command asks Node.js to download all of them.
 
@@ -187,7 +187,7 @@ npm install
 
 ---
 
-## Step 8 — Start the app
+## Step 8 â€” Start the app
 
 ### What to do
 
@@ -197,27 +197,27 @@ npm start
 
 ### What to expect
 
-You'll see colored text from two different sources at once — the server and the website. The important lines look like this:
+You'll see colored text from two different sources at once â€” the server and the website. The important lines look like this:
 
 ```
 SRV [wfs-server] SRV ready on 8787
 WEB   VITE v6.x.x  ready in 234 ms
-WEB   ➜  Local:   http://localhost:5173/
+WEB   âžœ  Local:   http://localhost:5173/
 ```
 
 > **What you should see:** Both `SRV ready on 8787` and `WEB Local: http://localhost:5173` appear within a few seconds. If they do, the app is running.
 
-The terminal stays "stuck" displaying these lines — that's correct. The app keeps running as long as the terminal window is open.
+The terminal stays "stuck" displaying these lines â€” that's correct. The app keeps running as long as the terminal window is open.
 
 ---
 
-## Step 9 — Sign in, browse, upload
+## Step 9 â€” Sign in, browse, upload
 
 Open your browser and go to:
 
 [http://localhost:5173](http://localhost:5173)
 
-The sign-in card loads. Pick which login methods you want allowed (Google, Facebook — leave them both checked if you're not sure) and click **"Continue to BridgePass"**.
+The sign-in card loads. Pick which login methods you want allowed (Google, Facebook â€” leave them both checked if you're not sure) and click **"Continue to BridgePass"**.
 
 You'll be sent to a separate page hosted by Lumen called BridgePass. Complete the login there. When you finish, BridgePass sends your browser back to this app, and you land on the dashboard.
 
@@ -226,7 +226,7 @@ From the dashboard:
 - Click **View my files** to open the paginated file table. You can search by name, sort by various columns, and flip through pages.
 - Click **Upload a file** to open the upload page. Drag a file from your desktop into the drop zone (or click the zone to pick one). The browser computes a fingerprint, asks the local server for an upload slot, and uploads the file directly to Azure storage with a progress bar. When the bar fills, you're sent back to the file list.
 
-> **Heads up:** `localhost` means "this computer". The number `5173` is the port — like an apartment number for which program inside your computer should answer. Only you can see this page; it's not on the internet. The BridgePass page itself **is** on the internet — that's where Lumen actually authenticates you. And the file upload PUTs directly to an Azure storage URL, also on the internet, via a one-time link the local server arranges for you.
+> **Heads up:** `localhost` means "this computer". The number `5173` is the port â€” like an apartment number for which program inside your computer should answer. Only you can see this page; it's not on the internet. The BridgePass page itself **is** on the internet â€” that's where Lumen actually authenticates you. And the file upload PUTs directly to an Azure storage URL, also on the internet, via a one-time link the local server arranges for you.
 
 ---
 
@@ -263,7 +263,7 @@ Each problem below has three parts: **what you saw** in your terminal or browser
 
 | What you saw | What it means | How to fix it |
 |---|---|---|
-| BridgePass shows an error page instead of letting you log in. | You skipped Step 3 — `http://localhost:5173/callback` is not on the allowed-redirect-URLs list for your API key. | Go back to the Lumen dashboard, open your API key, add `http://localhost:5173/callback` to the redirect URL list, save. Then try signing in again. |
+| BridgePass shows an error page instead of letting you log in. | You skipped Step 3 â€” `http://localhost:5173/callback` is not on the allowed-redirect-URLs list for your API key. | Go back to the Lumen dashboard, open your API key, add `http://localhost:5173/callback` to the redirect URL list, save. Then try signing in again. |
 
 ### Red banner: "Sign-in failed" with a 401
 
@@ -287,7 +287,7 @@ Each problem below has three parts: **what you saw** in your terminal or browser
 
 | What you saw | What it means | How to fix it |
 |---|---|---|
-| The upload completes but Azure rejects it. | The browser-computed MD5 fingerprint doesn't match the bytes Azure received. This is rare and usually means the file was modified between hashing and uploading (or the browser tab was paused). | Reload the upload page and try again. If it persists, the file may be corrupt — try with a different file first to confirm. |
+| The upload completes but Azure rejects it. | The browser-computed MD5 fingerprint doesn't match the bytes Azure received. This is rare and usually means the file was modified between hashing and uploading (or the browser tab was paused). | Reload the upload page and try again. If it persists, the file may be corrupt â€” try with a different file first to confirm. |
 
 ### "Session expired"
 
@@ -311,4 +311,4 @@ Each problem below has three parts: **what you saw** in your terminal or browser
 
 | What you saw | What it means | How to fix it |
 |---|---|---|
-| You opened [http://localhost:5173](http://localhost:5173) and it's blank or won't load. | Either the app failed to start, or the browser is hitting a wall. | (1) Check the terminal — did `npm start` show errors? (2) Open the browser's developer tools (press F12), click the Console tab. (3) If you're still stuck, take a screenshot and ask on the repo's Issues page. |
+| You opened [http://localhost:5173](http://localhost:5173) and it's blank or won't load. | Either the app failed to start, or the browser is hitting a wall. | (1) Check the terminal â€” did `npm start` show errors? (2) Open the browser's developer tools (press F12), click the Console tab. (3) If you're still stuck, take a screenshot and ask on the repo's Issues page. |

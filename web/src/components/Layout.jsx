@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+﻿import { Outlet } from 'react-router-dom'
 import Header from './Header.jsx'
 
 export default function Layout() {
@@ -16,7 +16,7 @@ export default function Layout() {
             Public sample &middot; demonstrates the Lumen BridgePass OAuth flow + personal file storage &middot; MIT licensed
           </span>
           <a
-            href="https://github.com/Bayanichain/wallet-and-files-sample-webapp"
+            href="https://github.com/Lumen-Suite/wallet-and-files-sample-webapp"
             target="_blank"
             rel="noreferrer"
             className="text-lumen-muted hover:text-lumen-fg"
