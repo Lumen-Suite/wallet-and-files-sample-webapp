@@ -6,6 +6,7 @@ import Spinner from '../components/Spinner.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Pagination from '../components/Pagination.jsx'
+import TransactionDetailModal from '../components/TransactionDetailModal.jsx'
 
 function shorten(addr) {
   if (!addr) return '-'
@@ -24,6 +25,7 @@ export default function Transactions() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeTx, setActiveTx] = useState(null)
 
   const load = useCallback(async () => {
     if (!address) {
@@ -89,27 +91,51 @@ export default function Transactions() {
               <table className="w-full text-sm">
                 <thead className="bg-lumen-subtle border-b border-lumen-border">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider">From</th>
-                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider">To</th>
-                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider">Value</th>
-                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden sm:table-cell">Hash</th>
+                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider">Type</th>
+                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider">Token</th>
+                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden md:table-cell">Counterparty</th>
+                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden lg:table-cell">Tx hash</th>
+                    <th className="text-left px-4 py-3 font-medium text-lumen-muted uppercase text-xs tracking-wider hidden sm:table-cell">When</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {txs.map((t) => {
-                    const log = t.Log ?? t
-                    const id = t.id ?? t.Id ?? log.Hash
-                    const isOut = log.From && address && log.From.toLowerCase() === address.toLowerCase()
+                  {txs.map((t, idx) => {
+                    const log = t.Log ?? {}
+                    const id = log.TransactionHash ?? `${t.id ?? idx}-${t.ContractAddress}-${t.TokenID}`
+                    const me = address?.toLowerCase()
+                    const fromMe = me && log.From?.toLowerCase() === me
+                    const counterparty = fromMe ? log.To : log.From
+                    const typeStr = String(log.Type ?? '').toLowerCase()
+                    const typeColor = typeStr === 'minted'
+                      ? 'border-lumen-success text-lumen-success'
+                      : typeStr === 'burned'
+                        ? 'border-lumen-error text-lumen-error'
+                        : 'border-lumen-border text-lumen-fg'
+                    const when = log.LogTS ? new Date((log.LogTS < 1e12 ? log.LogTS * 1000 : log.LogTS)).toLocaleString() : ''
                     return (
-                      <tr key={id} className="border-b border-lumen-border last:border-b-0 hover:bg-lumen-row-hover">
-                        <td className="px-4 py-3 font-mono text-lumen-muted">{shorten(log.From)}</td>
-                        <td className="px-4 py-3 font-mono text-lumen-muted">{shorten(log.To)}</td>
-                        <td className={`px-4 py-3 font-medium ${isOut ? 'text-lumen-error' : 'text-lumen-success'}`}>
-                          {isOut ? '-' : '+'}{log.Value ?? '0'}
+                      <tr
+                        key={id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setActiveTx(t)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            setActiveTx(t)
+                          }
+                        }}
+                        className="border-b border-lumen-border last:border-b-0 hover:bg-lumen-row-hover cursor-pointer"
+                        title="View transaction details"
+                      >
+                        <td className="px-4 py-3">
+                          <span className={`text-xs uppercase tracking-wider px-2 py-0.5 border ${typeColor}`}>
+                            {log.Type ?? '-'}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 hidden sm:table-cell font-mono text-xs text-lumen-muted">
-                          {log.Hash ? `${log.Hash.slice(0, 10)}...` : '-'}
-                        </td>
+                        <td className="px-4 py-3 font-mono">{t.TokenID != null ? `#${t.TokenID}` : '-'}</td>
+                        <td className="px-4 py-3 hidden md:table-cell font-mono text-lumen-muted">{shorten(counterparty)}</td>
+                        <td className="px-4 py-3 hidden lg:table-cell font-mono text-xs text-lumen-muted">{shorten(log.TransactionHash)}</td>
+                        <td className="px-4 py-3 hidden sm:table-cell text-lumen-muted text-xs">{when}</td>
                       </tr>
                     )
                   })}
@@ -126,6 +152,12 @@ export default function Transactions() {
           />
         </>
       )}
+
+      <TransactionDetailModal
+        tx={activeTx}
+        viewerAddress={address}
+        onClose={() => setActiveTx(null)}
+      />
     </div>
   )
 }
