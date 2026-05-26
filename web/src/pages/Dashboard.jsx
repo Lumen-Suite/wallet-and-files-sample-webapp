@@ -102,7 +102,7 @@ export default function Dashboard() {
         <Row label="Wallet ID" value={wallet?.id} mono />
         <Row label="Ownership" value={wallet?.Ownership} />
         <Row label="Wallet type" value={wallet?.WalletType} />
-        <Row label="Organization" value={wallet?.OrganizationID} mono />
+        <Row label="Organization" value={wallet?.OrganizationName} />
         {expiresAt && (
           <Row label="Session expires" value={new Date(expiresAt).toLocaleString()} />
         )}
