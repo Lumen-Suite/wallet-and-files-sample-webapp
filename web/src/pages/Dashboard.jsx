@@ -11,19 +11,13 @@ function Row({ label, value, mono }) {
   )
 }
 
-function shortenAddress(addr) {
-  if (!addr) return ''
-  if (addr.length <= 14) return addr
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-}
-
-function AddressChip({ address }) {
+function CopyIconButton({ value }) {
   const [copied, setCopied] = useState(false)
-  if (!address) return null
+  if (!value) return null
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(address)
+      await navigator.clipboard.writeText(value)
       setCopied(true)
       setTimeout(() => setCopied(false), 1200)
     } catch {
@@ -35,13 +29,22 @@ function AddressChip({ address }) {
     <button
       type="button"
       onClick={copy}
-      title={`Click to copy: ${address}`}
-      className="inline-flex items-center gap-1.5 text-xs font-mono text-lumen-muted hover:text-lumen-fg border border-lumen-border px-2 py-0.5 mt-1"
+      title={copied ? 'Copied' : 'Copy address'}
+      aria-label={copied ? 'Copied' : 'Copy address'}
+      className={`inline-flex items-center justify-center shrink-0 w-6 h-6 border border-lumen-border ${
+        copied ? 'text-lumen-success' : 'text-lumen-muted hover:text-lumen-fg'
+      }`}
     >
-      <span>{shortenAddress(address)}</span>
-      <span className={copied ? 'text-lumen-success' : 'text-lumen-muted'}>
-        {copied ? 'copied' : 'copy'}
-      </span>
+      {copied ? (
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
     </button>
   )
 }
@@ -75,7 +78,6 @@ export default function Dashboard() {
           <div className="min-w-0 flex-1">
             <div className="font-semibold text-lumen-fg truncate">{provider?.AccountName ?? '-'}</div>
             <div className="text-xs text-lumen-muted truncate">{provider?.Email ?? '-'}</div>
-            <AddressChip address={wallet?.WalletAddress} />
           </div>
           {provider?.Type && (
             <span className="text-xs uppercase tracking-widest text-lumen-muted px-2 py-1 border border-lumen-border self-start">
@@ -85,7 +87,18 @@ export default function Dashboard() {
         </div>
 
         <h2 className="text-sm font-semibold uppercase tracking-widest text-lumen-muted mb-3">Your wallet</h2>
-        <Row label="Address" value={wallet?.WalletAddress} mono />
+        <Row
+          label="Address"
+          mono
+          value={
+            wallet?.WalletAddress ? (
+              <span className="inline-flex items-center gap-2">
+                <span>{wallet.WalletAddress}</span>
+                <CopyIconButton value={wallet.WalletAddress} />
+              </span>
+            ) : null
+          }
+        />
         <Row label="Wallet ID" value={wallet?.id} mono />
         <Row label="Ownership" value={wallet?.Ownership} />
         <Row label="Wallet type" value={wallet?.WalletType} />
