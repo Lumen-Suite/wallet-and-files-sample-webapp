@@ -45,11 +45,15 @@ export const directoryListQuery = z.object({
 
 export const pathOnlyQuery = z.object({ path: pathSchema }).passthrough()
 
+const MAX_UPLOAD_FILE_SIZE_BYTES = 20 * 1024 * 1024 // matches BE SchemaOrganizationUserUploadFileForm
+
 export const uploadBody = z.object({
   Name: z.string().min(1).max(255),
   FileExtension: z.string().min(1).max(32),
   Checksum: md5Base64,
   Description: z.string().max(2000).optional().default(''),
+  Size: z.number().int().positive().max(MAX_UPLOAD_FILE_SIZE_BYTES),
+  MimeType: z.string().min(1).max(255),
 })
 
 export function validateQuery(schema, source = 'query') {

@@ -56,6 +56,8 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
           FileExtension: extOf(file.name) || 'bin',
           Checksum,
           Description: trimmedDescription,
+          Size: file.size,
+          MimeType: file.type || 'application/octet-stream',
         },
       )
 
