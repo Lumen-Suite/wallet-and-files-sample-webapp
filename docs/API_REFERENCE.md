@@ -245,7 +245,7 @@ curl "http://localhost:8787/api/user/files?pageNumber=1&pageSize=5&sort[0][field
 
 ### `POST /api/user/files?path=...`
 
-The first step of the two-step upload. You hand the server the file's metadata (name, extension, fingerprint), and the server hands you back a one-time **SAS URL** to PUT the bytes to.
+The first step of the two-step upload. You hand the server the file's metadata (name, extension, fingerprint), and the server hands you back a one-time upload URL (an Amazon S3 **presigned URL**, in a field that keeps its older name `SASURL`) to PUT the bytes to.
 
 ### Headers
 
@@ -288,13 +288,13 @@ curl -X POST "http://localhost:8787/api/user/files?path=%2F" \
   -d '{"Name":"report","FileExtension":"pdf","Checksum":"AAAAAAAAAAAAAAAAAAAAAA==","Description":""}'
 ```
 
-> **What you should see:** A JSON object with a `SASURL` (the Azure pre-signed link), a `WorkflowID` (background processing ID), and the new `File` metadata record.
+> **What you should see:** A JSON object with a `SASURL` (the S3 presigned upload link), a `WorkflowID` (background processing ID), and the new `File` metadata record.
 
 ### Response shape
 
 ```json
 {
-  "SASURL": "https://lumenuserfiles.blob.core.windows.net/...?sv=...&sig=...",
+  "SASURL": "https://<bucket>.s3.<region>.amazonaws.com/...?X-Amz-Algorithm=AWS4-HMAC-SHA256&...&X-Amz-Signature=...",
   "WorkflowID": "wf-abc123",
   "File": {
     "id": "file-xyz",
@@ -308,16 +308,15 @@ curl -X POST "http://localhost:8787/api/user/files?path=%2F" \
 
 ### The headline: what happens next (step 2 of the upload)
 
-After this route returns, the **browser** PUTs the file bytes directly to the `SASURL`. Your local Express server is not involved in that step. The PUT must include two headers:
+After this route returns, the **browser** PUTs the file bytes directly to the `SASURL`. Your local Express server is not involved in that step. It's one PUT (not a multipart upload) with one header:
 
 ```
-x-ms-blob-type: BlockBlob
-x-ms-blob-content-md5: <same Checksum value from the POST body>
+Content-Type: <the file's MIME type, or application/octet-stream>
 ```
 
-Azure verifies the fingerprint when the bytes land. A mismatch is rejected (the upload fails and the workflow doesn't run). The `Content-Type` header should reflect the file's MIME type if known, or `application/octet-stream` as a fallback.
+No auth headers (the signature in the URL is the permission) and no checksum header. After the bytes land, Lumen compares the stored file with the `Checksum` from the POST body. A mismatch fails the background workflow, and the file never shows up in your list.
 
-> **Why directly to Azure?** Routing file bytes through your local Express server would make uploads slow and double the bandwidth your computer spends. The pre-signed URL is scoped to one file, one operation (`PUT`), and a short expiry — so it's safe to give to the browser.
+> **Why directly to Amazon S3?** Routing file bytes through your local Express server would make uploads slow and double the bandwidth your computer spends. The pre-signed URL is scoped to one file, one operation (`PUT`), and a short expiry (60 minutes) — so it's safe to give to the browser.
 
 ### What it wraps
 

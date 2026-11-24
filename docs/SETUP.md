@@ -146,8 +146,8 @@ Run the command for your computer:
 Open `.env` in any text editor â€” Notepad on Windows, TextEdit on macOS, or VS Code if you have it. You'll see something like:
 
 ```
-LUMEN_API_BASE_URL=https://lumen-apim-stg.azure-api.net/wallet
-LUMEN_FILES_API_BASE_URL=https://lumen-apim-stg.azure-api.net/file
+LUMEN_API_BASE_URL=https://api.staging.nonlive.lumen.bayanichain.tech/wallet
+LUMEN_FILES_API_BASE_URL=https://api.staging.nonlive.lumen.bayanichain.tech/file
 LUMEN_API_KEY=paste-your-api-key-here
 LUMEN_API_SECRET=paste-your-api-secret-here
 SERVER_PORT=8787
@@ -156,7 +156,7 @@ VITE_BFF_URL=http://localhost:8787
 VITE_CALLBACK_URL=http://localhost:5173/callback
 ```
 
-> **Two Lumen URLs?** This sample talks to two services: the wallets API for sign-in and uploads, and the files API to list directories (so the upload page can show you which folders already exist). One API key works for both.
+> **Two Lumen URLs?** This sample talks to two services: the wallets API for sign-in and uploads, and the files API to list directories (so the upload page can show you which folders already exist). One API key works for both. Both URLs already point at Lumen's **staging** API gateway, so you can leave them as they are. The live gateway is `https://api.lumen.bayanichain.tech` (same `/wallet` and `/file` paths) — only switch to it if your API key comes from a live organization.
 
 Replace the `paste-your-...-here` text with the real values from Step 2.
 
@@ -224,9 +224,9 @@ You'll be sent to a separate page hosted by Lumen called BridgePass. Complete th
 From the dashboard:
 
 - Click **View my files** to open the paginated file table. You can search by name, sort by various columns, and flip through pages.
-- Click **Upload a file** to open the upload page. Drag a file from your desktop into the drop zone (or click the zone to pick one). The browser computes a fingerprint, asks the local server for an upload slot, and uploads the file directly to Azure storage with a progress bar. When the bar fills, you're sent back to the file list.
+- Click **Upload a file** to open the upload page. Drag a file from your desktop into the drop zone (or click the zone to pick one). The browser computes a fingerprint, asks the local server for an upload slot, and uploads the file directly to Lumen's file storage (Amazon S3) with a progress bar. When the bar fills, you're sent back to the file list.
 
-> **Heads up:** `localhost` means "this computer". The number `5173` is the port â€” like an apartment number for which program inside your computer should answer. Only you can see this page; it's not on the internet. The BridgePass page itself **is** on the internet â€” that's where Lumen actually authenticates you. And the file upload PUTs directly to an Azure storage URL, also on the internet, via a one-time link the local server arranges for you.
+> **Heads up:** `localhost` means "this computer". The number `5173` is the port — like an apartment number for which program inside your computer should answer. Only you can see this page; it's not on the internet. The BridgePass page itself **is** on the internet — that's where Lumen actually authenticates you. And the file upload PUTs directly to an Amazon S3 URL, also on the internet, via a one-time link the local server arranges for you.
 
 ---
 
@@ -277,17 +277,17 @@ Each problem below has three parts: **what you saw** in your terminal or browser
 |---|---|---|
 | You see a 400 error on the callback page right after the BridgePass redirect. | The URL was opened without an `?AuthCode=...` part. This usually happens if someone shared the callback link directly, or you refreshed the callback page after a successful exchange (the code is single-use). | Go back to `/login` and start the sign-in over from scratch. |
 
-### Upload fails with a `*.blob.core.windows.net` CORS error
+### Upload fails with an `*.amazonaws.com` CORS error
 
 | What you saw | What it means | How to fix it |
 |---|---|---|
-| The upload progress bar dies and the browser console shows a CORS error against an `*.blob.core.windows.net` address. | The Azure storage account that holds user files doesn't have `http://localhost:5173` on its allowlist for `PUT` requests. This is configured on Lumen's side, not yours. | Ask the Lumen team to add `http://localhost:5173` to the allowed origins for the user-files storage account, with `PUT` allowed. Once they do, the upload step works for every developer running this sample. |
+| The upload progress bar dies and the browser console shows a CORS error against an `*.amazonaws.com` address. | Lumen's upload bucket on Amazon S3 doesn't have `http://localhost:5173` on its CORS allowlist for `PUT` requests. This is configured on Lumen's side, not yours. | Ask the Lumen team to allow your origin (`http://localhost:5173`) in the upload bucket's CORS, with `PUT` allowed. Once they do, the upload step works for every developer running this sample. |
 
 ### Upload fails with "Checksum mismatch" or "MD5 mismatch"
 
 | What you saw | What it means | How to fix it |
 |---|---|---|
-| The upload completes but Azure rejects it. | The browser-computed MD5 fingerprint doesn't match the bytes Azure received. This is rare and usually means the file was modified between hashing and uploading (or the browser tab was paused). | Reload the upload page and try again. If it persists, the file may be corrupt â€” try with a different file first to confirm. |
+| The upload bar fills, but the file never shows up in My Files. | After the upload, Lumen compares the stored file with the MD5 fingerprint the browser computed, and they didn't match, so Lumen's background workflow stopped. This is rare and usually means the file was modified between hashing and uploading (or the browser tab was paused). | Reload the upload page and try again. If it persists, the file may be corrupt — try with a different file first to confirm. |
 
 ### "Session expired"
 

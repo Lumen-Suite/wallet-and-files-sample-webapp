@@ -125,7 +125,7 @@ The sign-in page appears. Click **"Continue to BridgePass"**. Complete the login
 
 **My Files page** â€” a paginated table of every file you own. Search by name, sort by various columns, page through them. Clicking a row shows the file's details.
 
-**Upload page** â€” a drag-and-drop zone (or a click-to-choose-file fallback). When you drop a file, the browser computes a fingerprint, asks the local server for an upload slot, and then uploads the file directly to Azure storage with a progress bar. When it's done, you're sent back to the My Files page.
+**Upload page** — a drag-and-drop zone (or a click-to-choose-file fallback). When you drop a file, the browser computes a fingerprint, asks the local server for an upload slot, and then uploads the file directly to Lumen's file storage (Amazon S3) with a progress bar. When it's done, you're sent back to the My Files page.
 
 **Transactions page** â€” a paginated list of on-chain activity for your wallet. Outgoing transactions are shown in red with a minus sign; incoming ones are green with a plus sign.
 
@@ -137,12 +137,12 @@ The sign-in page appears. Click **"Continue to BridgePass"**. Complete the login
 
 ```
 Your browser  ->  Local Express server  ->  Lumen Wallet API
-   :5173             :8787                   (Azure cloud)
+   :5173             :8787                   (AWS cloud)
                                               ^
                                               |
                 Your browser  <->  BridgePass page  (for the OAuth redirect)
 
-Your browser  ----direct PUT---->  Azure Blob Storage   (during file upload only)
+Your browser  ----direct PUT---->  Amazon S3   (during file upload only)
                   (one-time pre-signed URL, bypassing the local server)
 ```
 
@@ -150,7 +150,7 @@ The **Express server** is a tiny program running on your own computer. Its only 
 
 **Sign-in:** When you click "Continue to BridgePass", the browser asks the Express server for a login URL. The Express server asks Lumen (with the API key+secret attached). The browser then visits BridgePass, you log in, and BridgePass redirects you back to `http://localhost:5173/callback` with a short-lived **AuthCode**. The browser hands the AuthCode to the Express server, which trades it in for a **session token**. The browser stores the token in **sessionStorage** (a per-tab storage that clears when you close the tab) and includes it on every later request.
 
-**File uploads** are different. The upload page first asks the Express server for an upload slot. The server replies with a **SAS URL** â€” a one-time pre-signed link to Azure storage. The browser then **PUTs the file bytes directly to that link**, bypassing your local Express server entirely. That's deliberate: your local server is a thin proxy, and uploads can be large; routing them through the proxy would make uploads slow and waste your computer's bandwidth.
+**File uploads** are different. The upload page first asks the Express server for an upload slot. The server replies with a one-time **presigned URL** — a link to Lumen's file storage on Amazon S3 (in the API response the field keeps its older name, `SASURL`). The browser then **PUTs the file bytes directly to that link**, bypassing your local Express server entirely. That's deliberate: your local server is a thin proxy, and uploads can be large; routing them through the proxy would make uploads slow and waste your computer's bandwidth.
 
 More detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -173,9 +173,9 @@ More detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | `LUMEN_API_KEY missing` (or similar envCheck error) | You haven't filled in your secrets yet. | Re-read Step 6 above and edit `.env`. |
 | BridgePass page shows "invalid redirect URL" or similar | You skipped Step 3 â€” `http://localhost:5173/callback` is not registered on your API key. | Open the Lumen dashboard, edit your API key, add `http://localhost:5173/callback` to the allowed redirect URLs, save. |
 | After the redirect, the page says "Sign-in failed" with a `401` | Your `LUMEN_API_KEY` or `LUMEN_API_SECRET` is wrong, or there are spaces/quotes around them in `.env`. | Re-open `.env`, fix the values, save, stop the app (`Ctrl+C`), run `npm start` again. |
-| File upload fails with a `*.blob.core.windows.net` CORS error | The Azure storage account behind Lumen doesn't have `http://localhost:5173` on its allowlist for `PUT` requests. This is set on Lumen's side, not yours. | Ask the Lumen team to allow `http://localhost:5173` for `PUT` on their user-files storage account. (Once they enable it, all developers running this sample benefit.) |
+| File upload fails with a CORS error mentioning `amazonaws.com` | Lumen's upload bucket (on Amazon S3) doesn't have `http://localhost:5173` on its CORS allowlist for `PUT` requests. This is set on Lumen's side, not yours. | Ask the Lumen team to allow your origin (`http://localhost:5173`) for `PUT` on the upload bucket's CORS. (Once they enable it, all developers running this sample benefit.) |
 
-> **CORS** (Cross-Origin Resource Sharing) is a browser security rule that blocks websites on one address from talking to a server on a different address â€” unless the server explicitly allows it. The upload uses CORS twice: once on your local Express server (already configured), and once on Azure Blob Storage (configured on Lumen's side).
+> **CORS** (Cross-Origin Resource Sharing) is a browser security rule that blocks websites on one address from talking to a server on a different address — unless the server explicitly allows it. The upload uses CORS twice: once on your local Express server (already configured), and once on Lumen's upload bucket on Amazon S3 (configured on Lumen's side).
 
 ---
 
