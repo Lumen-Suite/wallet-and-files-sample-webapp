@@ -2,7 +2,7 @@
   "name": "wallet-and-files-sample-webapp",
   "version": "1.0.0",
   "private": true,
-  "description": "Public sample demonstrating the Lumen BridgePass OAuth flow plus end-user file browsing and upload. Vite + React + Tailwind frontend, Express thin-proxy backend, browser-side MD5 + direct-to-Azure SAS URL upload.",
+  "description": "Public sample demonstrating the Lumen BridgePass OAuth flow plus end-user file browsing and upload. Vite + React + Tailwind frontend, Express thin-proxy backend, browser-side MD5 + direct-to-S3 presigned URL upload.",
   "license": "MIT",
   "workspaces": [
     "server",

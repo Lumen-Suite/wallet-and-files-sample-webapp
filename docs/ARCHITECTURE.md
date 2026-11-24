@@ -13,7 +13,7 @@ This page explains how the sample app is put together and why each piece exists.
 ```
 +--------------------+       +----------------------+       +-----------------------+
 |  Browser (5173)    |  -->  |  Express BFF (8787)  |  -->  |  Lumen Wallet API     |
-|  Vite + React JSX  |       |  thin proxy          |       |  (Azure Container App)|
+|  Vite + React JSX  |       |  thin proxy          |       |  (hosted on AWS)      |
 |  Tailwind 4        |       |  + helmet + CORS     |       |                       |
 |                    |       |  + rate limit        |       |  4 auth + 2 user-file |
 |  sessionStorage:   |       |  + Zod body/query    |       |  endpoints            |
@@ -26,8 +26,8 @@ This page explains how the sample app is put together and why each piece exists.
        |   +-------------- BridgePass (Lumen-hosted) <-------------------+
        |                       (separate origin)
        |
-       |    upload step: PUT file bytes directly with SAS URL
-       +---------------------------------------------> Azure Blob Storage
+       |    upload step: PUT file bytes directly with presigned URL
+       +---------------------------------------------> Amazon S3
                                                        (bypasses the BFF)
 ```
 
@@ -35,9 +35,9 @@ There are three boxes plus two side trips:
 
 1. **The browser part** (the React app at `http://localhost:5173`). This is what you see and click on.
 2. **The local Express server** at `http://localhost:8787`. A small program running on your computer that acts as a middleman.
-3. **The Lumen Wallet API** out on the internet (hosted in Azure). The real source of authentication, wallet data, and user-file metadata.
+3. **The Lumen Wallet API** out on the internet (hosted on AWS). The real source of authentication, wallet data, and user-file metadata.
 4. **BridgePass** — a separate page hosted by Lumen where the actual login happens. The browser visits it directly during the OAuth flow.
-5. **Azure Blob Storage** — the actual place file bytes are stored. The browser **PUTs uploaded files directly to a pre-signed URL** Azure provides, bypassing your local Express server.
+5. **Amazon S3** — Lumen's file storage, the actual place file bytes are stored. The browser **PUTs uploaded files directly to a pre-signed URL** Lumen hands out, bypassing your local Express server.
 
 Both halves of your local app read from a single `.env` settings file at the project root.
 
@@ -84,17 +84,17 @@ On every page reload, if there's a token in sessionStorage, the React app calls 
 
 This is the second core mechanic, unique to this sample. A user file is not sent through your Express server. It goes around it.
 
-1. **The browser computes a fingerprint.** Before uploading anything, the browser reads the file's bytes locally and runs them through a fingerprint algorithm called **MD5**. The result is a short 24-character string that uniquely identifies the file's content. Azure will verify this fingerprint on the other end. The library that does this is called `spark-md5`.
+1. **The browser computes a fingerprint.** Before uploading anything, the browser reads the file's bytes locally and runs them through a fingerprint algorithm called **MD5**. The result is a short 24-character string that uniquely identifies the file's content. Lumen will check this fingerprint after the file lands. The library that does this is called `spark-md5`.
 2. **The browser asks the Express server for an upload slot.** This is `POST /api/user/files?path=/`, with a JSON body containing the file's name, extension, and the MD5 fingerprint. The Express server forwards this to Lumen (with your API key, your API secret, and the user's session token).
-3. **Lumen returns a one-time pre-signed URL.** Lumen reserves a spot in Azure Blob Storage and replies with three things: a **SAS URL** (a long Azure link that grants permission to upload to one specific spot, for a short time, with no further authentication), a **WorkflowID** (an ID for the background processing that will run after the upload), and the **File** metadata record.
-4. **The browser uploads the file bytes directly to that SAS URL.** This is an HTTP `PUT` from the browser straight to Azure Blob Storage — your local Express server is not involved. The browser includes two important headers: `x-ms-blob-type: BlockBlob` (telling Azure what kind of blob this is) and `x-ms-blob-content-md5: <Checksum>` (the same fingerprint from step 1).
-5. **Azure verifies the fingerprint and accepts the file.** If the bytes Azure received hash to the same MD5 as the header, the upload is committed. Lumen kicks off a background workflow to process the file (metadata extraction, virus scan, indexing — whatever Lumen does internally).
+3. **Lumen returns a one-time pre-signed URL.** Lumen reserves a spot in its storage (Amazon S3) and replies with three things: a **presigned URL** in a field called `SASURL` (the field keeps its older name; it's a long S3 link that grants permission to upload to one specific spot, for a short time, with no further authentication), a **WorkflowID** (an ID for the background processing that will run after the upload), and the **File** metadata record.
+4. **The browser uploads the file bytes directly to that presigned URL.** This is one HTTP `PUT` from the browser straight to Amazon S3 — your local Express server is not involved. The browser sends a single header, `Content-Type` (the file's type, such as `image/png`). There are no login headers — the signature inside the URL is the permission — and no checksum header.
+5. **Lumen verifies the fingerprint and accepts the file.** After the file lands, Lumen compares the stored file's MD5 with the `Checksum` you sent in step 2. If they match, the file is accepted; if not, the background workflow fails and the file never shows up in your list. Lumen kicks off a background workflow to process the file (metadata extraction, virus scan, indexing — whatever Lumen does internally).
 
 **Why this matters:** the file bytes never go through your Express server. Upload speed is limited only by your internet connection, not by the proxy on your computer. The local Express server stays small and fast, even if the user is uploading a 200-MB file.
 
-> **Note:** A **SAS URL** (Shared Access Signature URL) is Azure's pattern for granting temporary, scoped permission without sharing the storage account's master key. The URL itself encodes which file, what operation (in this case `PUT`), and an expiry time. Once it expires (or once it's been used), it stops working.
+> **Note:** A **presigned URL** is Amazon S3's pattern for granting temporary, scoped permission without sharing the storage's master credentials. The URL itself encodes which file, what operation (in this case `PUT`), and an expiry time (60 minutes). Once it expires, it stops working. Lumen's API still calls the field `SASURL`, its older name.
 
-> **Note:** **MD5** is a fast, well-known checksum algorithm. It is not safe for password hashing or signatures, but it's the standard choice for "does what I uploaded match what arrived" because Azure understands it natively.
+> **Note:** **MD5** is a fast, well-known checksum algorithm. It is not safe for password hashing or signatures, but it's the standard choice for "does what I uploaded match what arrived" because cloud storage like Amazon S3 understands it natively.
 
 ---
 
@@ -145,7 +145,7 @@ This is the second core mechanic, unique to this sample. A user file is not sent
             ├── Callback.jsx      reads ?AuthCode= and exchanges it for a session token
             ├── Dashboard.jsx     (protected) wallet info card + nav buttons
             ├── MyFiles.jsx       (protected) paginated file table + search + sort
-            ├── Upload.jsx        (protected) drag-drop + MD5 + PUT-to-SAS with progress
+            ├── Upload.jsx        (protected) drag-drop + MD5 + PUT-to-S3 with progress
             ├── Transactions.jsx  (protected) paginated on-chain history for the signed-in wallet
             └── NotFound.jsx
 ```
@@ -173,10 +173,10 @@ Each row below is a possible attack or mistake, and what we did to block it.
 | Header injection | We use Helmet (a security middleware) to set a strict Content Security Policy with an explicit `connect-src` allowlist — so the browser refuses to load resources from unexpected places. `frame-ancestors` is `'none'`, so the app can't be embedded in an iframe. |
 | Abuse / runaway scripts | `express-rate-limit` caps `/api/*` at **200 requests per 15 minutes per IP address**. Higher than the auth-only sample (which is at 100) because the file table can pull more pages in normal use. If something starts hammering the server, it gets a `429 Too Many Requests` response. |
 | Body / query fuzzing | Zod (a validation library) checks every incoming body and query — `AllowedLoginMethods` shape on login-config, `pageNumber`/`pageSize`/`search`/`sort[0][field]` on file list (allowlist of fields: `Name`, `_ts`, `FileExtension`, `CreatedAt`, `UpdatedAt`, `OwnerAddress`), `path` regex on the upload `path` query, `Name`/`FileExtension`/base64-MD5 `Checksum`/`Description` on the upload body. Junk values get rejected before the request ever reaches Lumen. |
-| Oversized JSON | `express.json({ limit: '32kb' })` caps the request body at 32 kilobytes. The upload body is metadata only — bytes go directly to Azure. |
+| Oversized JSON | `express.json({ limit: '32kb' })` caps the request body at 32 kilobytes. The upload body is metadata only — bytes go directly to Amazon S3. |
 | Error leakage | Errors from Lumen are normalized into a clean `{ ok, status, error }` shape. Stack traces (which can reveal internal details) never reach the browser. |
 | Token theft via XSS | The session token is stored in **sessionStorage** — per-tab, clears on tab close. We didn't use `localStorage` (which persists forever). We didn't use a cookie (which would need CSRF protection). sessionStorage trades off a little user convenience (each tab logs in separately) for a smaller XSS blast radius. |
-| Upload tampering | The browser computes the MD5 fingerprint and sends it to Lumen with the upload-slot request. Azure independently re-checks the fingerprint when the file lands. A mismatch is rejected. The fingerprint also makes the upload idempotent — uploading the same bytes twice produces the same result. |
+| Upload tampering | The browser computes the MD5 fingerprint and sends it to Lumen with the upload-slot request. Lumen independently re-checks the fingerprint against the stored file after it lands. A mismatch fails the upload workflow. The fingerprint also makes the upload idempotent — uploading the same bytes twice produces the same result. |
 
 > **Heads up:** These mitigations are good for a local sample and small deployments. For real production traffic, see "Deploying this" below.
 
@@ -202,7 +202,7 @@ If you're building your own internal app and want to use the real design system,
 This sample is deliberately small. We left things out for clarity:
 
 - **No folder hierarchy on user files.** Every uploaded file lands at the root path `/`. The Lumen user-files API supports a `path`, but we don't expose a folder picker in this sample. You can add one — the field is already validated by Zod on the server.
-- **No chunked upload for huge files.** The browser PUTs the entire file in a single request. That works fine up to a few hundred MB on a typical home connection. For multi-gigabyte uploads, you'd want to switch to Azure's block-list upload API; that's out of scope for this sample.
+- **No chunked upload for huge files.** The browser PUTs the entire file in a single request, and that's on purpose: Lumen requires one PUT, not a multipart upload, because a multipart upload's fingerprint can never match the `Checksum`.
 - **No batch upload.** You can only upload one file at a time. The user-files API is single-file by design — the **organization-files** API has a batch endpoint, and that's exposed in the separate `files-management-sample-webapp` sample (which uses org credentials, not end-user credentials).
 - **No token refresh.** When the session expires, the user is sent back to `/login` and signs in again.
 - **No multi-tab sync.** Because we use `sessionStorage`, each browser tab is its own session.
@@ -218,6 +218,6 @@ The local-only flow works as-is. If you want to put this sample on the public in
 2. **Backend** — deploy to Render, Railway, or Azure Container Apps. Set `LUMEN_API_KEY`, `LUMEN_API_SECRET`, and `ALLOWED_ORIGIN` (= your frontend's public URL).
 3. **CORS update** — make sure `ALLOWED_ORIGIN` matches the deployed frontend URL exactly. Update the Helmet CSP `connect-src` allowlist if it's pointing at a new host.
 4. **Register the production callback URL on your API key** — exactly the same step you did for `http://localhost:5173/callback`, but with the deployed frontend's HTTPS URL + `/callback`. BridgePass won't redirect to an unregistered URL.
-5. **Azure Blob CORS** — ask the Lumen team to add your deployed frontend URL to the allowed origins on their user-files storage account. Without it, browser uploads from your deployed site will fail with a CORS error.
+5. **Upload bucket CORS** — ask the Lumen team to add your deployed frontend URL to the allowed origins in their upload bucket's CORS (on Amazon S3). Without it, browser uploads from your deployed site will fail with a CORS error.
 
 > **Tip:** For a true production deployment, you'd also want centralized logging, distributed rate limiting (backed by Redis instead of in-memory), and TLS (HTTPS) at both hops. Those upgrades are out of scope for this sample but are well-trodden paths if you want them.

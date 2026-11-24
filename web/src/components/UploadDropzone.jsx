@@ -48,7 +48,7 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
       setStage('hashing')
       const Checksum = await computeMd5Base64(file)
 
-      setStage('requesting-sas')
+      setStage('requesting-url')
       const { data } = await api.post(
         `/user/files?path=${encodeURIComponent(path || '/')}`,
         {
@@ -63,10 +63,11 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
 
       setStage('uploading')
       setProgress(0)
+      // SASURL is an S3 presigned URL (the field keeps its older name).
+      // Send Content-Type only: no auth headers, no checksum header. Lumen
+      // compares the Checksum from the create call with the stored object.
       await axios.put(data.SASURL, file, {
         headers: {
-          'x-ms-blob-type': 'BlockBlob',
-          'x-ms-blob-content-md5': Checksum,
           'Content-Type': file.type || 'application/octet-stream',
         },
         maxBodyLength: Infinity,
@@ -94,7 +95,7 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
   const labelForStage = {
     idle: 'Ready',
     hashing: 'Calculating fingerprint...',
-    'requesting-sas': 'Getting an upload slot...',
+    'requesting-url': 'Getting an upload slot...',
     uploading: 'Uploading...',
     done: 'Uploaded',
     error: 'Failed',
@@ -143,7 +144,7 @@ export default function UploadDropzone({ path = '/', onUploaded }) {
           aria-hidden
         />
         <div className="text-xs text-lumen-muted mt-3">
-          One file at a time. Uploads go straight to Azure storage; the Express server never sees the file bytes.
+          One file at a time. Uploads go straight to Lumen's storage (Amazon S3); the Express server never sees the file bytes.
         </div>
       </div>
 
